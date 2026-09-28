@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
-import { rankSkills, transcriptText } from "./picker.ts";
-import { ADDITION_ENTRY, TURN_ENTRY, formatAddition, restoreHistory, type SkillAddition } from "./history.ts";
+import { rankSkills, transcriptText, type RankedSkill } from "./picker.ts";
+import { ADDITION_ENTRY, TURN_ENTRY, buildHistoryView, restoreHistory, type SkillAddition } from "./history.ts";
 import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 import { withPickerStatus } from "./status.ts";
 
@@ -43,12 +43,13 @@ export default function skillPicker(pi: ExtensionAPI) {
     skipFirstRequest = false;
   };
 
-  const recordAddition = (skills: Skill[], step: number) => {
-    if (!skills.length) return;
-    const entry = { turn: turnNumber, step, skills: skills.map((skill) => skill.name) };
+  const recordAddition = (ranked: RankedSkill[], step: number) => {
+    if (!ranked.length) return;
+    const entry: SkillAddition = { turn: turnNumber, step, threshold: settings.threshold,
+      skills: ranked.map(({ skill, probability }) => ({ name: skill.name, score: probability })) };
     pi.appendEntry(ADDITION_ENTRY, entry);
     additions.push(entry);
-    for (const name of entry.skills) knownAdded.add(name);
+    for (const skill of entry.skills) knownAdded.add(skill.name);
   };
 
   const showSettings = async (ctx: ExtensionCommandContext) => {
@@ -83,8 +84,17 @@ export default function skillPicker(pi: ExtensionAPI) {
   };
 
   const showHistory = async (ctx: ExtensionCommandContext) => {
-    const rows = additions.length ? additions.map(formatAddition) : ["No skills added this session."];
-    await ctx.ui.select("Skill picker · additions this session", [...rows, "Close"]);
+    const view = buildHistoryView(additions);
+    if (!view.rows.length) {
+      await ctx.ui.select("Skill picker · additions this session", ["No skills added this session.", "Close"]);
+      return;
+    }
+    for (;;) {
+      const choice = await ctx.ui.select("Skill picker · additions this session", [...view.rows, "Close"]);
+      const detail = choice && view.expansions.get(choice);
+      if (!detail) break;
+      await ctx.ui.select(detail.title, [...detail.rows, "Back"]);
+    }
   };
 
   pi.registerCommand("skill-picker", {
@@ -139,7 +149,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           threshold: settings.threshold,
           maxNew: settings.maxNew,
         }));
-        for (const skill of newlySelected) selected.set(skill.name, skill);
+        for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, 1);
       } catch (error) {
         console.error("[pi-skill-picker-jev] Initial ranking failed (skills hidden):", error);
@@ -167,7 +177,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           threshold: settings.threshold,
           maxNew: settings.maxNew,
         }));
-        for (const skill of newlySelected) selected.set(skill.name, skill);
+        for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, requestNumber);
       } catch (error) {
         console.error("[pi-skill-picker-jev] Incremental ranking failed (keeping previous skills):", error);

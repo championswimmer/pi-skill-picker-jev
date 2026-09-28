@@ -18,11 +18,11 @@ test("Jev batches Pi skills, selects only threshold matches and fails closed", a
     return new Response(JSON.stringify({ answers }), { status: 200 });
   };
   const ranked = await rankSkills("Review my PR", [skill("review"), skill("docker"), skill("deploy")], [], { apiKey: "test", batchSize: 2, fetcher: fetcher as typeof fetch });
-  assert.deepEqual(ranked.map((s) => s.name), ["review"]);
+  assert.deepEqual(ranked.map(({ skill, probability }) => [skill.name, probability]), [["review", 0.93]]);
   assert.equal(requested.length, 3);
   assert.deepEqual(await rankSkills("task", [skill("docker")], [], { apiKey: "" }), []);
-  assert.match(renderSkills(ranked), /<name>review<\/name>/);
-  assert.doesNotMatch(renderSkills(ranked), /docker/);
+  assert.match(renderSkills(ranked.map(({ skill }) => skill)), /<name>review<\/name>/);
+  assert.doesNotMatch(renderSkills(ranked.map(({ skill }) => skill)), /docker/);
 });
 
 test("filters only Pi's loaded skills and adds newly relevant Pi skills", async () => {

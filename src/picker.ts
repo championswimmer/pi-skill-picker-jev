@@ -1,5 +1,10 @@
 import type { Skill } from "@earendil-works/pi-coding-agent";
 
+export interface RankedSkill {
+  skill: Skill;
+  probability: number;
+}
+
 export interface DecisionOptions {
   apiKey: string;
   model?: string;
@@ -12,12 +17,12 @@ export interface DecisionOptions {
 /** Rank every unsent candidate in batches. Never fail open by displaying all skills. */
 export async function rankSkills(
   task: string, candidates: Skill[], alreadySent: Skill[], options: DecisionOptions,
-): Promise<Skill[]> {
+): Promise<RankedSkill[]> {
   if (!options.apiKey || !candidates.length || !task.trim()) return [];
   const fetcher = options.fetcher ?? fetch;
   const batchSize = Math.max(1, Math.min(60, options.batchSize ?? 40));
   const threshold = options.threshold ?? 0.75;
-  const scores: Array<{ skill: Skill; probability: number }> = [];
+  const scores: RankedSkill[] = [];
   // Sequential batching prevents rate-limit bursts and keeps the context per decision bounded.
   for (let start = 0; start < candidates.length; start += batchSize) {
     const batch = candidates.slice(start, start + batchSize);
@@ -39,11 +44,11 @@ export async function rankSkills(
       const data = await response.json() as { answers?: Record<string, { noul?: number }> };
       batch.forEach((skill, i) => {
         const probability = data.answers?.[`s${i}`]?.noul;
-        if (typeof probability === "number" && probability >= threshold) scores.push({ skill, probability });
+        if (typeof probability === "number" && Number.isFinite(probability) && probability >= threshold && probability <= 1) scores.push({ skill, probability });
       });
     } finally { clearTimeout(timeout); }
   }
-  return scores.sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6).map(({ skill }) => skill);
+  return scores.sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6);
 }
 
 export function transcriptText(messages: Array<{ role: string; content?: unknown }>, lastPrompt = ""): string {

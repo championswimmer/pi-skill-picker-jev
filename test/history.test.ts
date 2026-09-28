@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
-import { ADDITION_ENTRY, TURN_ENTRY, formatAddition, restoreHistory } from "../src/history.ts";
+import { ADDITION_ENTRY, TURN_ENTRY, buildHistoryView, restoreHistory } from "../src/history.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -18,13 +21,16 @@ test("session branch history restores only valid turn and addition records", () 
   ];
   const result = restoreHistory(entries);
   assert.equal(result.turn, 1);
-  assert.deepEqual(result.additions, [{ turn: 1, step: 1, skills: ["review"] }]);
+  assert.deepEqual(result.additions, [{ turn: 1, step: 1, threshold: null, skills: [{ name: "review", score: null }] }]);
   assert.deepEqual([...result.selectedNames], ["review"]);
-  assert.equal(formatAddition(result.additions[0]), "Turn 1 · initial request: review");
+  assert.deepEqual(buildHistoryView(result.additions).rows, ["Turn 1 · initial · review (score unavailable)"]);
 });
 
 test("/skill-picker history shows per-turn additions and restores the active branch", async () => {
   const oldFetch = globalThis.fetch;
+  const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
+  const agentDir = mkdtempSync(join(tmpdir(), "skill-picker-history-"));
+  process.env.PI_CODING_AGENT_DIR = agentDir;
   try {
     let branch: Array<{ type: string; customType: string; data: unknown }> = [];
     const handlers = new Map<string, Function>();
@@ -57,9 +63,9 @@ test("/skill-picker history shows per-turn additions and restores the active bra
     await handlers.get("before_agent_start")!({ prompt: "Run test suite", systemPromptOptions: { skills: [...skills] } }, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);
     assert.deepEqual(dialogs.at(-1)?.rows, [
-      "Turn 1 · initial request: review",
-      "Turn 1 · follow-up request #2: deploy",
-      "Turn 2 · initial request: test",
+      "Turn 1 · initial · review (score 0.990 ≥ 0.750)",
+      "Turn 1 · follow-up #2 · deploy (score 0.990 ≥ 0.750)",
+      "Turn 2 · initial · test (score 0.990 ≥ 0.750)",
       "Close",
     ]);
     assert.equal(branch.filter((entry) => entry.customType === TURN_ENTRY).length, 2);
@@ -72,6 +78,11 @@ test("/skill-picker history shows per-turn additions and restores the active bra
     branch = branch.slice(0, 2);
     await handlers.get("session_tree")!({ newLeafId: "fork", oldLeafId: "main" }, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);
-    assert.deepEqual(dialogs.at(-1)?.rows, ["Turn 1 · initial request: review", "Close"]);
-  } finally { globalThis.fetch = oldFetch; }
+    assert.deepEqual(dialogs.at(-1)?.rows, ["Turn 1 · initial · review (score 0.990 ≥ 0.750)", "Close"]);
+  } finally {
+    globalThis.fetch = oldFetch;
+    if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
+    rmSync(agentDir, { recursive: true, force: true });
+  }
 });

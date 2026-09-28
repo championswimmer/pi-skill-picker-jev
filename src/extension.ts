@@ -1,11 +1,12 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
-import { rankSkills, transcriptText, type RankedSkill } from "./picker.ts";
+import { transcriptText, type RankedSkill } from "./picker.ts";
+import { decideSkills } from "./decision.ts";
 import { TriggerTracker } from "./triggers.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type SkillAddition } from "./history.ts";
 import { showTurnSkills } from "./history-ui.ts";
 import { TRIGGER_LABELS, TRIGGER_MODES, parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
-import { withPickerStatus } from "./status.ts";
-import { reportDecisionUsage } from "./usage-log.ts";
+import { readAllowlist } from "./always-allowed.ts";
+import { showAlwaysAllowed } from "./always-allowed-ui.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -46,6 +47,16 @@ export default function skillPicker(pi: ExtensionAPI) {
     skipFirstRequest = false;
   };
 
+  const syncAllowlist = (cwd: string) => {
+    const allowed = readAllowlist(cwd);
+    for (const [name] of selected) {
+      if (!knownAdded.has(name) && !allowed.has(name)) selected.delete(name);
+    }
+    for (const skill of inventory) {
+      if (allowed.has(skill.name)) selected.set(skill.name, skill);
+    }
+  };
+
   const recordAddition = (ranked: RankedSkill[], step: number) => {
     if (!ranked.length) return;
     const entry: SkillAddition = { turn: turnNumber, step, threshold: settings.threshold,
@@ -60,8 +71,21 @@ export default function skillPicker(pi: ExtensionAPI) {
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
-        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, "Done"]);
+        const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
+        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, allowedOption, "Done"]);
         if (!choice || choice === "Done") break;
+        if (choice === allowedOption) {
+          // Before the first turn, Pi's registered skill commands provide the
+          // same names/descriptions; never scan files or invent new candidates.
+          const commands = pi.getCommands().filter((command) => command.source === "skill" && command.name.startsWith("skill:"));
+          const skills = inventory.length ? inventory : commands.map((command) => ({
+            name: command.name.slice(6), description: command.description ?? "", filePath: "",
+            // UI/ranking only; never passed to Pi's skills prompt.
+          } as Skill));
+          await showAlwaysAllowed(ctx, skills);
+          syncAllowlist(ctx.cwd);
+          continue;
+        }
         if (choice === triggerOption) {
           const picked = await ctx.ui.select("When to pick skills", TRIGGER_MODES.map((mode) => TRIGGER_LABELS[mode]));
           const triggerMode = TRIGGER_MODES.find((mode) => TRIGGER_LABELS[mode] === picked);
@@ -162,18 +186,13 @@ export default function skillPicker(pi: ExtensionAPI) {
     for (const skill of inventory) {
       if (knownAdded.has(skill.name) && !selected.has(skill.name)) selected.set(skill.name, skill);
     }
+    syncAllowlist(ctx.cwd);
     // Always remove Pi's original full skills list, including on API failure.
     event.systemPromptOptions.skills = [...selected.values()];
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (pending.length) {
       try {
-        const newlySelected = await withPickerStatus(ctx, async () => rankSkills(lastPrompt, pending, [...selected.values()], {
-          apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
-          model: process.env.PI_SKILL_PICKER_MODEL,
-          threshold: settings.threshold,
-          maxNew: settings.maxNew,
-          onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
-        }));
+        const newlySelected = await decideSkills(ctx, lastPrompt, pending, [...selected.values()], settings);
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, 1);
       } catch (error) {
@@ -192,18 +211,13 @@ export default function skillPicker(pi: ExtensionAPI) {
       return;
     }
     requestNumber++;
+    syncAllowlist(ctx.cwd);
     const shouldRank = triggers.shouldRank(settings.triggerMode, event.messages, lastPrompt);
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (shouldRank && pending.length) {
       const context = transcriptText(event.messages, lastPrompt);
       try {
-        const newlySelected = await withPickerStatus(ctx, async () => rankSkills(context, pending, [...selected.values()], {
-          apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
-          model: process.env.PI_SKILL_PICKER_MODEL,
-          threshold: settings.threshold,
-          maxNew: settings.maxNew,
-          onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
-        }));
+        const newlySelected = await decideSkills(ctx, context, pending, [...selected.values()], settings);
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, requestNumber);
       } catch (error) {

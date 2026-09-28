@@ -18,6 +18,8 @@ export interface DecisionOptions {
   threshold?: number;
   batchSize?: number;
   maxNew?: number;
+  /** Score general usefulness independently of the current task (settings UI only). */
+  globalImportance?: boolean;
   fetcher?: typeof fetch;
   /** One callback per successful Jev API request/batch, including batches with no selected skills. */
   onUsage?: (usage: DecisionCallUsage) => void;
@@ -51,8 +53,12 @@ export async function rankSkills(
   async function rankBatch(index: number): Promise<RankedSkill[]> {
     const batch = candidates.slice(index * batchSize, (index + 1) * batchSize);
     const questions = Object.fromEntries(batch.map((skill, i) => [
-      `s${i}`, { type: "noul", instructions: `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
-        criteria: { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
+      `s${i}`, { type: "noul", instructions: options.globalImportance
+        ? `Would this skill be broadly important to keep available across tasks in a project? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
+        : `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
+        criteria: options.globalImportance
+          ? { true: "Broadly useful across many tasks; important to keep available globally.", false: "Specialized or rarely useful; not important globally." }
+          : { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
     ]));
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);

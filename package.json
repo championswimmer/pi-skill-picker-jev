@@ -1,8 +1,17 @@
 {
   "name": "pi-skill-picker-jev",
   "version": "0.1.0",
-  "private": true,
   "description": "Keep Pi's skill catalog out of context until Jev selects relevant skills",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/championswimmer/pi-skill-picker-jev.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "src/"
+  ],
   "type": "module",
   "license": "MIT",
   "pi": {

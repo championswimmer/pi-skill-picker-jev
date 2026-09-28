@@ -6,16 +6,31 @@ import { withPickerStatus } from "./status.ts";
 /** One Decisions pipeline for task matching and project-wide importance scoring. */
 export function decideSkills(
   ctx: ExtensionContext, task: string, candidates: Skill[], alreadySent: Skill[],
-  options: Pick<DecisionOptions, "threshold" | "maxNew" | "globalImportance"> & { requireKey?: boolean },
+  options: Pick<DecisionOptions, "threshold" | "maxNew" | "globalImportance" | "topicSearch" | "signal"> & {
+    requireKey?: boolean;
+    /** The allowlist overlay renders its own loading state; do not update the underlying Pi UI. */
+    showStatus?: boolean;
+  },
 ) {
-  return withPickerStatus(ctx, async () => {
-    const apiKey = await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "";
+  const operation = async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let keyRequest = ctx.modelRegistry.getApiKeyForProvider("openrouter");
+    if (options.requireKey) {
+      // Auth providers may refresh credentials; do not leave a dialog stuck indefinitely.
+      keyRequest = Promise.race([keyRequest, new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("OpenRouter authentication timed out")), 10_000);
+      })]);
+    }
+    let apiKey: string;
+    try { apiKey = await keyRequest ?? ""; }
+    finally { if (timer) clearTimeout(timer); }
     if (options.requireKey && !apiKey) throw new Error("OpenRouter authentication is required for relevance sorting");
     return rankSkills(task, candidates, alreadySent, {
-    ...options,
-    apiKey,
-    model: process.env.PI_SKILL_PICKER_MODEL,
-    onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
+      ...options,
+      apiKey,
+      model: process.env.PI_SKILL_PICKER_MODEL,
+      onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
     });
-  });
+  };
+  return options.showStatus === false ? operation() : withPickerStatus(ctx, operation);
 }

@@ -20,7 +20,11 @@ export interface DecisionOptions {
   maxNew?: number;
   /** Score general usefulness independently of the current task (settings UI only). */
   globalImportance?: boolean;
+  /** Score skills needed to work on topics supplied by the allowlist search bar. */
+  topicSearch?: boolean;
   fetcher?: typeof fetch;
+  /** Optional shared deadline/cancellation across all batches. */
+  signal?: AbortSignal;
   /** One callback per successful Jev API request/batch, including batches with no selected skills. */
   onUsage?: (usage: DecisionCallUsage) => void;
 }
@@ -31,16 +35,16 @@ export async function rankSkills(
 ): Promise<RankedSkill[]> {
   if (!options.apiKey || !candidates.length || !task.trim()) return [];
   const fetcher = options.fetcher ?? fetch;
-  const batchSize = Math.max(1, Math.min(60, options.batchSize ?? 40));
+  const batchSize = Math.max(1, Math.min(60, options.batchSize ?? 50));
   const threshold = options.threshold ?? 0.75;
   const batchCount = Math.ceil(candidates.length / batchSize);
   const results: RankedSkill[][] = Array.from({ length: batchCount }, () => []);
   let nextBatch = 0;
   let failure: unknown;
   let failed = false;
-  // Run up to three requests at a time, without leaving in-flight batches behind on failure.
+  // Run up to six requests at a time, without leaving in-flight batches behind on failure.
   async function worker(): Promise<void> {
-    while (nextBatch < batchCount && !failed) {
+    while (nextBatch < batchCount && !failed && !options.signal?.aborted) {
       const index = nextBatch++;
       try {
         results[index] = await rankBatch(index);
@@ -55,16 +59,20 @@ export async function rankSkills(
     const questions = Object.fromEntries(batch.map((skill, i) => [
       `s${i}`, { type: "noul", instructions: options.globalImportance
         ? `Would this skill be broadly important to keep available across tasks in a project? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
-        : `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
+        : options.topicSearch
+          ? `Is this skill required to work on the topics in the search query (state.task)? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
+          : `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
         criteria: options.globalImportance
           ? { true: "Broadly useful across many tasks; important to keep available globally.", false: "Specialized or rarely useful; not important globally." }
-          : { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
+          : options.topicSearch
+            ? { true: "Required to work on the topics in the search query.", false: "Not required for those topics." }
+            : { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
     ]));
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
     try {
       const response = await fetcher("https://openrouter.ai/api/alpha/decisions", {
-        method: "POST", signal: controller.signal,
+        method: "POST", signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
         headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: options.model ?? "typesafe/jev-1.13", state: {
           task: task.slice(-12_000), already_available: alreadySent.map((s) => `${s.name}: ${s.description}`).join("\n").slice(0, 3000),
@@ -89,8 +97,9 @@ export async function rankSkills(
       });
     } finally { clearTimeout(timeout); }
   }
-  await Promise.all(Array.from({ length: Math.min(3, batchCount) }, () => worker()));
+  await Promise.all(Array.from({ length: Math.min(6, batchCount) }, () => worker()));
   if (failed) throw failure;
+  if (options.signal?.aborted) throw options.signal.reason;
   return results.flat().sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6);
 }
 

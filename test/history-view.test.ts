@@ -50,6 +50,7 @@ test("history has two levels: turns then scored skills with live expandable desc
   await handlers.get("session_start")!({}, ctx);
   await commands.get("skill-picker")!.handler("history", ctx);
   assert.deepEqual(turnDialogs[0], ["Turn 1 · 9 skills added (expand)", "Turn 2 · 1 skill added (expand)", "Close"]);
+  assert.match(renders[0], /^┌─ Turn 1 · 9 skills added /);
   assert.match(renders[0], /skill-1 \(score 0\.900 ≥ 0\.750\)/);
   assert.doesNotMatch(renders[0], /Reviews changes/);
   assert.match(renders[1], /Description · skill-1/);

@@ -40,7 +40,19 @@ test("Jev batches Pi skills, selects only threshold matches and fails closed", a
   assert.doesNotMatch(renderSkills(ranked.map(({ skill }) => skill)), /docker/);
 });
 
-test("Jev batches run concurrently with a limit of three and preserve ranking order", async () => {
+test("Jev defaults to 50 candidates per batch", async () => {
+  const sizes: number[] = [];
+  const fetcher = async (_url: unknown, init: RequestInit) => {
+    const body = JSON.parse(init.body as string);
+    sizes.push(Object.keys(body.questions).length);
+    return new Response(JSON.stringify({ answers: {} }), { status: 200 });
+  };
+  await rankSkills("task", Array.from({ length: 101 }, (_, i) => skill(`skill${i}`)), [],
+    { apiKey: "test", fetcher: fetcher as typeof fetch });
+  assert.deepEqual(sizes, [50, 50, 1]);
+});
+
+test("Jev batches run concurrently with a limit of six and preserve ranking order", async () => {
   const releases: Array<() => void> = [];
   let active = 0;
   let peak = 0;
@@ -52,22 +64,25 @@ test("Jev batches run concurrently with a limit of three and preserve ranking or
     active--;
     return new Response(JSON.stringify({ answers: { s0: { noul: 0.9 } } }), { status: 200 });
   };
-  const ranking = rankSkills("task", Array.from({ length: 5 }, (_, i) => skill(`skill${i}`)), [],
-    { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch });
-  assert.equal(releases.length, 3);
-  assert.equal(peak, 3);
+  const ranking = rankSkills("task", Array.from({ length: 8 }, (_, i) => skill(`skill${i}`)), [],
+    { apiKey: "test", batchSize: 1, maxNew: 8, fetcher: fetcher as typeof fetch });
+  assert.equal(releases.length, 6);
+  assert.equal(peak, 6);
   releases[2](); // A later batch finishes before an earlier one.
   await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(releases.length, 4);
-  assert.equal(peak, 3);
-  releases[3]();
+  assert.equal(releases.length, 7);
+  assert.equal(peak, 6);
+  releases[6]();
   await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(releases.length, 5);
+  assert.equal(releases.length, 8);
+  releases[7]();
+  releases[5]();
   releases[4]();
+  releases[3]();
   releases[1]();
   releases[0]();
   assert.deepEqual((await ranking).map(({ skill }) => skill.name),
-    ["skill0", "skill1", "skill2", "skill3", "skill4"]);
+    Array.from({ length: 8 }, (_, i) => `skill${i}`));
 });
 
 test("a failed batch waits for in-flight batches and does not start more or return partial selections", async () => {
@@ -81,14 +96,31 @@ test("a failed batch waits for in-flight batches and does not start more or retu
     completed++;
     return new Response(JSON.stringify({ answers: { s0: { noul: 0.99 } } }));
   };
-  const ranking = rankSkills("task", Array.from({ length: 5 }, (_, i) => skill(`skill${i}`)), [],
+  const ranking = rankSkills("task", Array.from({ length: 8 }, (_, i) => skill(`skill${i}`)), [],
     { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch });
   await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(started, 3);
+  assert.equal(started, 6);
   releases.forEach((release) => release());
   await assert.rejects(ranking, /503/);
-  assert.equal(completed, 2);
-  assert.equal(started, 3);
+  assert.equal(completed, 5);
+  assert.equal(started, 6);
+});
+
+test("a shared ranking deadline aborts in-flight Jev batches and skips queued batches", async () => {
+  const controller = new AbortController();
+  let started = 0;
+  const fetcher = async (_url: unknown, init: RequestInit) => {
+    started++;
+    return new Promise<Response>((_resolve, reject) => {
+      init.signal!.addEventListener("abort", () => reject(init.signal!.reason), { once: true });
+    });
+  };
+  const ranking = rankSkills("task", Array.from({ length: 8 }, (_, i) => skill(`skill${i}`)), [],
+    { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch, signal: controller.signal });
+  assert.equal(started, 6);
+  controller.abort(new Error("ranking timed out"));
+  await assert.rejects(ranking, /ranking timed out/);
+  assert.equal(started, 6);
 });
 
 test("filters only Pi's loaded skills and adds newly relevant Pi skills", async () => {

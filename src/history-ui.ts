@@ -1,6 +1,7 @@
 import { SelectList, truncateToWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { formatHistorySkill, type TurnHistory } from "./history.ts";
+import { dialogFrame } from "./dialog-frame.ts";
 
 /** Descriptions are resolved from Pi's live skills, never written to session entries. */
 export async function showTurnSkills(
@@ -30,26 +31,27 @@ export async function showTurnSkills(
 
     return {
       render(width: number) {
-        const lines = [truncateToWidth(theme.fg("accent", `Turn ${turn.turn} · ${turn.skills.length} skills added`), width), "", ...list.render(width)];
+        const inner = Math.max(1, width - 4);
+        const lines = ["", ...list.render(inner)];
         if (expanded !== undefined) {
           const name = turn.skills[expanded].name;
           // Skill metadata is provided by Pi's current resource loader via getCommands().
           const description = (descriptions.get(name)?.trim() || "Description unavailable (skill is no longer loaded by Pi).")
             .replace(/[\u0000-\u001f\u007f\u001b]/g, " ").trim();
-          lines.push("", truncateToWidth(theme.fg("accent", `Description · ${name}`), width));
-          lines.push(...wrapTextWithAnsi(description, Math.max(1, width - 2)).map((line) => `  ${theme.fg("text", line)}`));
+          lines.push("", truncateToWidth(theme.fg("accent", `Description · ${name}`), inner));
+          lines.push(...wrapTextWithAnsi(description, inner).map((line) => theme.fg("text", line)));
         }
         lines.push("", theme.fg("dim", "↑↓ navigate · enter expand/collapse · esc back"));
-        return lines;
+        return dialogFrame(theme, `Turn ${turn.turn} · ${turn.skills.length} skills added`, width, lines);
       },
       invalidate() { list.invalidate(); },
       handleInput(data: string) { list.handleInput(data); tui.requestRender(); },
       handleMouse(event) {
         if (event.y < 2) return;
-        const result = list.handleMouse({ ...event, y: event.y - 2 });
+        const result = list.handleMouse({ ...event, y: event.y - 2, x: event.x - 2 });
         tui.requestRender();
         return result;
       },
     };
-  });
+  }, { overlay: true, overlayOptions: { width: "80%", maxHeight: "80%" } });
 }

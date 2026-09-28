@@ -1,10 +1,11 @@
+import { readFileSync } from "node:fs";
 import type { ExtensionCommandContext, Skill } from "@earendil-works/pi-coding-agent";
 import { Input, fuzzyFilter, matchesKey, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { dialogFrame } from "./dialog-frame.ts";
 import { readAllowlist, writeAllowlist } from "./always-allowed.ts";
 import { decideSkills } from "./decision.ts";
 
-/** A project-scoped editor. Cancelling never writes the draft. */
+/** A project-scoped editor. Only Ctrl+S writes the draft. */
 export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Skill[]): Promise<void> {
   const names = new Set<string>();
   const available = skills.filter((skill) => {
@@ -17,8 +18,19 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
     return;
   }
   const draft = readAllowlist(ctx.cwd);
+  // Cache file character counts so search and ranking redraws never read from disk.
+  const sizes = new Map(available.map((skill) => {
+    try {
+      const chars = Array.from(readFileSync(skill.filePath, "utf8")).length;
+      return [skill.name, chars < 1000 ? `${chars}` : `${Math.round(chars / 100) / 10}k`] as const;
+    } catch {
+      return [skill.name, "?"] as const;
+    }
+  }));
   let scores: Map<string, number> | undefined;
-  const saved = await ctx.ui.custom<boolean>((tui, theme, _keys, done) => {
+  await ctx.ui.custom<boolean>((tui, theme, _keys, done) => {
+    let savedNames = new Set(draft);
+    const isDirty = () => draft.size !== savedNames.size || [...draft].some((name) => !savedNames.has(name));
     let mode: "alphabetical" | "relevance" = "alphabetical";
     let expandedName: string | undefined;
     let index = 0;
@@ -82,7 +94,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
           ...input.render(w), ""];
         for (let i = offset; i < Math.min(items.length, offset + 10); i++) {
           const skill = items[i];
-          lines.push(`${listFocused && i === index ? "❯" : " "} ${draft.has(skill.name) ? "[x]" : "[ ]"} ${skill.name}${mode === "relevance" && scores?.has(skill.name) ? ` · ${scores.get(skill.name)!.toFixed(2)}` : ""}`);
+          lines.push(`${listFocused && i === index ? "❯" : " "} ${draft.has(skill.name) ? "[x]" : "[ ]"} ${skill.name} · ${sizes.get(skill.name)} chars${mode === "relevance" && scores?.has(skill.name) ? ` · ${scores.get(skill.name)!.toFixed(2)}` : ""}`);
           if (expandedName === skill.name) {
             const description = wrapTextWithAnsi(skill.description, Math.max(1, w - 4));
             description.forEach((line, n) => lines.push(`${n === 0 ? "  • " : "    "}${line}`));
@@ -91,7 +103,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
         if (!items.length) lines.push("No matching skills");
         lines.push(`${Math.min(index + 1, items.length)}/${items.length}`, "",
           "Type to search · Ctrl+K clear · ↓ enter list · Space toggle · Enter description",
-          "Esc search (twice close) · Tab switch tabs · Ctrl+R rank · Ctrl+S save");
+          `Esc search (twice close) · Tab switch tabs · Ctrl+R rank · ${isDirty() ? theme.fg("warning", "● ") : ""}Ctrl+S save`);
         return dialogFrame(theme, "Always allowed skills", width, lines);
       },
       get focused() { return hasTuiFocus; },
@@ -99,8 +111,11 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
       invalidate() { input.invalidate(); },
       handleInput(data: string) {
         if (matchesKey(data, "ctrl+s")) {
-          try { writeAllowlist(ctx.cwd, draft); done(true); }
-          catch (error) { ctx.ui.notify(`Could not save always allowed skills: ${String(error)}`, "error"); }
+          try {
+            writeAllowlist(ctx.cwd, draft);
+            savedNames = new Set(draft);
+            redraw();
+          } catch (error) { ctx.ui.notify(`Could not save always allowed skills: ${String(error)}`, "error"); }
           return;
         }
         if (matchesKey(data, "tab") || matchesKey(data, "left") || matchesKey(data, "right")) {
@@ -140,5 +155,4 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
       },
     };
   }, { overlay: true, overlayOptions: { width: "80%", maxHeight: "80%" } });
-  if (saved) ctx.ui.notify("Project always allowed skills saved.", "info");
 }

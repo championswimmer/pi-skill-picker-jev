@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
@@ -44,6 +44,38 @@ test("always allowed skills stay visible without credentials or Jev and do not e
     writeAllowlist(dir, []);
     await handlers.get("before_agent_start")!({ prompt: "anything", systemPromptOptions: options }, ctx);
     assert.deepEqual(options.skills, []);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("allowlist rows show cached skill file character counts with k notation", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "jev-allowed-sizes-"));
+  try {
+    const entries = [
+      ["small", "a".repeat(999)], ["thousand", "b".repeat(1000)],
+      ["large", "c".repeat(1550)], ["unicode", "😺😺😺"],
+    ] as const;
+    const skills = entries.map(([name, content]) => {
+      const filePath = join(dir, `${name}.md`);
+      writeFileSync(filePath, content);
+      return { ...skill(name), filePath };
+    });
+    skills.push(skill("missing"));
+    let component!: { handleInput(data: string): void; render(width: number): string[] };
+    const ctx = { cwd: dir, ui: { custom: (factory: Function) => new Promise<boolean>((resolve) => {
+      component = factory({ requestRender: () => {} }, { fg: (_color: string, text: string) => text, bg: (_color: string, text: string) => text }, {}, resolve);
+    }) } };
+    const pending = showAlwaysAllowed(ctx as any, skills);
+    const render = () => component.render(100).join("\n");
+    assert.match(render(), /small · 999 chars/);
+    assert.match(render(), /thousand · 1k chars/);
+    assert.match(render(), /large · 1\.6k chars/);
+    assert.match(render(), /unicode · 3 chars/);
+    assert.match(render(), /missing · \? chars/);
+    writeFileSync(join(dir, "small.md"), "changed");
+    component.handleInput("\t"); // Cached size is also shown in relevance mode
+    assert.match(render(), /small · 999 chars/);
+    component.handleInput("\x1b");
+    await pending;
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -124,9 +156,43 @@ test("allow dialog has a title and filters immediately while typing and backspac
     assert.match(render(), /Search: /);
     assert.doesNotMatch(render(), /Search: b /);
     assert.match(render(), /2 results/);
-    component.handleInput("\x13"); // Ctrl+S
-    await pending;
+    component.handleInput("\x13"); // Ctrl+S saves without closing
     assert.deepEqual([...readAllowlist(dir)], ["beta"]);
+    component.handleInput("\x1b"); // Esc closes from search
+    await pending;
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("Ctrl+S saves in place and the yellow dot tracks unsaved allowlist changes", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "jev-allowed-save-"));
+  try {
+    let component!: { handleInput(data: string): void; render(width: number): string[] };
+    let closed = false;
+    const ctx = { cwd: dir, ui: { custom: (factory: Function) => new Promise<boolean>((resolve) => {
+      component = factory({ requestRender: () => {} }, { fg: (color: string, text: string) => color === "warning" ? `<yellow>${text}</yellow>` : text,
+        bg: (_color: string, text: string) => text }, {}, resolve);
+    }) } };
+    const pending = showAlwaysAllowed(ctx as any, [skill("alpha"), skill("beta")]).then(() => { closed = true; });
+    const footer = () => component.render(100).at(-2)!;
+    assert.doesNotMatch(footer(), /<yellow>● <\/yellow>Ctrl\+S save/);
+    component.handleInput("\x1b[B"); // Enter the list and toggle alpha
+    component.handleInput(" ");
+    assert.match(footer(), /<yellow>● <\/yellow>Ctrl\+S save/);
+    component.handleInput(" "); // Undo the change: no longer dirty
+    assert.doesNotMatch(footer(), /<yellow>● <\/yellow>Ctrl\+S save/);
+    component.handleInput(" ");
+    component.handleInput("\x13"); // Save, but keep editing in the dialog
+    assert.deepEqual([...readAllowlist(dir)], ["alpha"]);
+    assert.equal(closed, false);
+    assert.doesNotMatch(footer(), /<yellow>● <\/yellow>Ctrl\+S save/);
+    component.handleInput("\x1b[B"); // Select beta and make a new unsaved change
+    component.handleInput(" ");
+    assert.match(footer(), /<yellow>● <\/yellow>Ctrl\+S save/);
+    component.handleInput("\x1b"); // Esc to search, then Esc to close
+    assert.equal(closed, false);
+    component.handleInput("\x1b");
+    await pending;
+    assert.deepEqual([...readAllowlist(dir)], ["alpha"]); // Discard only post-save edits
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -227,10 +293,10 @@ test("relevance search ranks all skills for the query only when refreshed, witho
     assert.match(requests[0].questions.s0.instructions, /required to work on the topics in the search query/);
     assert.match(requests[0].questions.s0.criteria.true, /Required to work on the topics/);
     rendered = component.render(100).join("\n");
-    assert.match(rendered, /\[ \] beta · 0\.90[\s\S]*\[ \] alpha · 0\.10/);
+    assert.match(rendered, /\[ \] beta · \? chars · 0\.90[\s\S]*\[ \] alpha · \? chars · 0\.10/);
     component.handleInput("!");
     assert.equal(requests.length, 1); // Editing never triggers another Jev call
-    assert.match(component.render(100).join("\n"), /\[ \] beta · 0\.90[\s\S]*\[ \] alpha · 0\.10/);
+    assert.match(component.render(100).join("\n"), /\[ \] beta · \? chars · 0\.90[\s\S]*\[ \] alpha · \? chars · 0\.10/);
     component.handleInput("\x1b[D");
     assert.match(component.render(100).join("\n"), /0 results/); // A-Z is fuzzy search
     finish(false);
@@ -264,7 +330,7 @@ test("Jev failures appear inside the overlay and Ctrl+R can retry", async () => 
     component.handleInput("\x12");
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(requests, 2);
-    assert.match(component.render(100).join("\n"), /\[ \] alpha · 0\.90/);
+    assert.match(component.render(100).join("\n"), /\[ \] alpha · \? chars · 0\.90/);
     assert.doesNotMatch(component.render(100).join("\n"), /Relevance sort unavailable/);
     component.handleInput("\x1b");
     await pending;

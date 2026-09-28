@@ -1,0 +1,2886 @@
+{
+  "version": 1,
+  "label": "kev-9b",
+  "model": "kev-latest",
+  "startedAt": "2026-09-28T21:09:47.634Z",
+  "node": "v26.10.0",
+  "inventory": {
+    "count": 263,
+    "metadataSha256": "b77fa1d24edaa1352f1cf3d76e03098af7153aeb9d90ec3cb2afe807fc8ff685",
+    "disabled": 0,
+    "descriptionChars": {
+      "min": 25,
+      "max": 1021,
+      "mean": 394.7376425855513,
+      "over1200": 0
+    }
+  },
+  "seed": 20260928,
+  "rotationStride": 23,
+  "measurementTimeoutMs": 120000,
+  "productionBatchTimeoutMs": 30000,
+  "workloads": [
+    {
+      "id": "serial-6",
+      "size": 6,
+      "concurrency": 1,
+      "rounds": 12,
+      "warmupPairs": 2,
+      "measuredDistinctCandidates": 72
+    },
+    {
+      "id": "serial-50",
+      "size": 50,
+      "concurrency": 1,
+      "rounds": 12,
+      "warmupPairs": 2,
+      "measuredDistinctCandidates": 263
+    },
+    {
+      "id": "catalog-263",
+      "size": 263,
+      "concurrency": 6,
+      "rounds": 4,
+      "warmupPairs": 1,
+      "measuredDistinctCandidates": 263
+    }
+  ],
+  "requests": [
+    {
+      "workload": "serial-6",
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 2512.947611,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 3970,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 834,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1826.096227,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5380,
+      "responseBytes": 3357,
+      "usage": {
+        "inputTokens": 1122,
+        "outputTokens": 1114
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1963.555542,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5695,
+      "responseBytes": 3362,
+      "usage": {
+        "inputTokens": 1157,
+        "outputTokens": 1117
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1543.9254760000003,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4285,
+      "responseBytes": 312,
+      "usage": {
+        "inputTokens": 869,
+        "outputTokens": 137
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1906.3183420000005,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4995,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 1013,
+        "outputTokens": 137
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 2025.3254089999991,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 6405,
+      "responseBytes": 3363,
+      "usage": {
+        "inputTokens": 1301,
+        "outputTokens": 1118
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1909.977993999999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5563,
+      "responseBytes": 3365,
+      "usage": {
+        "inputTokens": 1134,
+        "outputTokens": 1118
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1514.2752959999998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4153,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 846,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1878.9142310000007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4295,
+      "responseBytes": 312,
+      "usage": {
+        "inputTokens": 910,
+        "outputTokens": 137
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1938.0765719999981,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5705,
+      "responseBytes": 3349,
+      "usage": {
+        "inputTokens": 1198,
+        "outputTokens": 1106
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1897.298877000001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 6281,
+      "responseBytes": 3368,
+      "usage": {
+        "inputTokens": 1287,
+        "outputTokens": 1121
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1517.6987149999986,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4871,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 999,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1557.967575999999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4119,
+      "responseBytes": 312,
+      "usage": {
+        "inputTokens": 862,
+        "outputTokens": 137
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1622.8153679999996,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5529,
+      "responseBytes": 3356,
+      "usage": {
+        "inputTokens": 1150,
+        "outputTokens": 1113
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1753.008715,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5436,
+      "responseBytes": 3360,
+      "usage": {
+        "inputTokens": 1116,
+        "outputTokens": 1115
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1374.8470540000017,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4026,
+      "responseBytes": 311,
+      "usage": {
+        "inputTokens": 828,
+        "outputTokens": 136
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1432.254105,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4261,
+      "responseBytes": 309,
+      "usage": {
+        "inputTokens": 883,
+        "outputTokens": 136
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1551.364243,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5671,
+      "responseBytes": 3359,
+      "usage": {
+        "inputTokens": 1171,
+        "outputTokens": 1112
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1899.7151790000025,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5624,
+      "responseBytes": 3364,
+      "usage": {
+        "inputTokens": 1169,
+        "outputTokens": 1117
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1506.5328360000058,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4214,
+      "responseBytes": 312,
+      "usage": {
+        "inputTokens": 881,
+        "outputTokens": 137
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1235.3719599999968,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4146,
+      "responseBytes": 311,
+      "usage": {
+        "inputTokens": 853,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1479.699188999999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5556,
+      "responseBytes": 3350,
+      "usage": {
+        "inputTokens": 1141,
+        "outputTokens": 1107
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1873.4796399999977,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5790,
+      "responseBytes": 3361,
+      "usage": {
+        "inputTokens": 1203,
+        "outputTokens": 1116
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1472.8722479999997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4380,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 915,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1227.1108959999983,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4279,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 867,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1489.0448209999959,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5689,
+      "responseBytes": 3350,
+      "usage": {
+        "inputTokens": 1155,
+        "outputTokens": 1109
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1866.6288540000023,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 5741,
+      "responseBytes": 3353,
+      "usage": {
+        "inputTokens": 1165,
+        "outputTokens": 1110
+      }
+    },
+    {
+      "workload": "serial-6",
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 6,
+      "elapsedMs": 1461.2129050000003,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 4331,
+      "responseBytes": 313,
+      "usage": {
+        "inputTokens": 877,
+        "outputTokens": 138
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13992.964607000002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35919,
+      "responseBytes": 1894,
+      "usage": {
+        "inputTokens": 7514,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14999.773123000006,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47669,
+      "responseBytes": 27250,
+      "usage": {
+        "inputTokens": 9914,
+        "outputTokens": 9320
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16417.845875,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47930,
+      "responseBytes": 27212,
+      "usage": {
+        "inputTokens": 9953,
+        "outputTokens": 9296
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13848.649646999998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 36180,
+      "responseBytes": 1894,
+      "usage": {
+        "inputTokens": 7553,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13970.701792000007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 33781,
+      "responseBytes": 1887,
+      "usage": {
+        "inputTokens": 7022,
+        "outputTokens": 1181
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16073.678614000004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 45531,
+      "responseBytes": 27277,
+      "usage": {
+        "inputTokens": 9422,
+        "outputTokens": 9335
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16036.56599100001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46215,
+      "responseBytes": 27261,
+      "usage": {
+        "inputTokens": 9562,
+        "outputTokens": 9325
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13432.909802999988,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34465,
+      "responseBytes": 1886,
+      "usage": {
+        "inputTokens": 7162,
+        "outputTokens": 1180
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13601.419011999998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34966,
+      "responseBytes": 1894,
+      "usage": {
+        "inputTokens": 7305,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 15773.610087999987,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46716,
+      "responseBytes": 27215,
+      "usage": {
+        "inputTokens": 9705,
+        "outputTokens": 9297
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14081.029368999996,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46115,
+      "responseBytes": 27268,
+      "usage": {
+        "inputTokens": 9615,
+        "outputTokens": 9328
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 11382.856000999978,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34365,
+      "responseBytes": 1883,
+      "usage": {
+        "inputTokens": 7215,
+        "outputTokens": 1179
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 11513.16915100001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35158,
+      "responseBytes": 1888,
+      "usage": {
+        "inputTokens": 7349,
+        "outputTokens": 1182
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13906.51305899999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46908,
+      "responseBytes": 27270,
+      "usage": {
+        "inputTokens": 9749,
+        "outputTokens": 9332
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14086.613020000019,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47695,
+      "responseBytes": 27224,
+      "usage": {
+        "inputTokens": 9843,
+        "outputTokens": 9304
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 11368.100896999968,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35945,
+      "responseBytes": 1895,
+      "usage": {
+        "inputTokens": 7443,
+        "outputTokens": 1189
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14972.67985799996,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35657,
+      "responseBytes": 1891,
+      "usage": {
+        "inputTokens": 7494,
+        "outputTokens": 1185
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16654.731142000004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47407,
+      "responseBytes": 27252,
+      "usage": {
+        "inputTokens": 9894,
+        "outputTokens": 9316
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16988.024133,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46290,
+      "responseBytes": 27285,
+      "usage": {
+        "inputTokens": 9660,
+        "outputTokens": 9337
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14765.864093000011,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34540,
+      "responseBytes": 1889,
+      "usage": {
+        "inputTokens": 7260,
+        "outputTokens": 1183
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14251.257929000014,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34616,
+      "responseBytes": 1890,
+      "usage": {
+        "inputTokens": 7241,
+        "outputTokens": 1184
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16494.030741000024,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46366,
+      "responseBytes": 27244,
+      "usage": {
+        "inputTokens": 9641,
+        "outputTokens": 9318
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16967.834639000008,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47420,
+      "responseBytes": 27289,
+      "usage": {
+        "inputTokens": 9882,
+        "outputTokens": 9343
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14085.535244000028,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35670,
+      "responseBytes": 1893,
+      "usage": {
+        "inputTokens": 7482,
+        "outputTokens": 1187
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13998.077588999993,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 36475,
+      "responseBytes": 1893,
+      "usage": {
+        "inputTokens": 7598,
+        "outputTokens": 1187
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16100.150893000013,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 48225,
+      "responseBytes": 27250,
+      "usage": {
+        "inputTokens": 9998,
+        "outputTokens": 9320
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16434.91094100004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46835,
+      "responseBytes": 27210,
+      "usage": {
+        "inputTokens": 9684,
+        "outputTokens": 9296
+      }
+    },
+    {
+      "workload": "serial-50",
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13840.920592999959,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35085,
+      "responseBytes": 1892,
+      "usage": {
+        "inputTokens": 7284,
+        "outputTokens": 1186
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 15127.548894000007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47669,
+      "responseBytes": 27252,
+      "usage": {
+        "inputTokens": 9914,
+        "outputTokens": 9320
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 81410.38736999995,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 45301,
+      "responseBytes": 27283,
+      "usage": {
+        "inputTokens": 9384,
+        "outputTokens": 9339
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 81410.71003100002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46479,
+      "responseBytes": 27268,
+      "usage": {
+        "inputTokens": 9672,
+        "outputTokens": 9324
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 81410.83499500004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47463,
+      "responseBytes": 27271,
+      "usage": {
+        "inputTokens": 9807,
+        "outputTokens": 9329
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 81410.95473900007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47256,
+      "responseBytes": 27267,
+      "usage": {
+        "inputTokens": 9834,
+        "outputTokens": 9325
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 81411.04646799999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 12436,
+      "responseBytes": 7170,
+      "usage": {
+        "inputTokens": 2617,
+        "outputTokens": 2423
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13872.749209999922,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 35919,
+      "responseBytes": 1894,
+      "usage": {
+        "inputTokens": 7514,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 69888.169856,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 33551,
+      "responseBytes": 1890,
+      "usage": {
+        "inputTokens": 6984,
+        "outputTokens": 1184
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 69888.347313,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 34729,
+      "responseBytes": 1886,
+      "usage": {
+        "inputTokens": 7272,
+        "outputTokens": 1180
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 69888.27162499994,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35713,
+      "responseBytes": 1892,
+      "usage": {
+        "inputTokens": 7407,
+        "outputTokens": 1186
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 69888.27367900009,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35506,
+      "responseBytes": 1890,
+      "usage": {
+        "inputTokens": 7434,
+        "outputTokens": 1184
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 69888.30959000008,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 9381,
+      "responseBytes": 562,
+      "usage": {
+        "inputTokens": 1993,
+        "outputTokens": 301
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 14024.096454999992,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 36180,
+      "responseBytes": 1892,
+      "usage": {
+        "inputTokens": 7553,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 70268.67965900002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 34777,
+      "responseBytes": 1889,
+      "usage": {
+        "inputTokens": 7220,
+        "outputTokens": 1185
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 70269.04541399993,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 33585,
+      "responseBytes": 1891,
+      "usage": {
+        "inputTokens": 7060,
+        "outputTokens": 1187
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 70269.29133400007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35749,
+      "responseBytes": 1892,
+      "usage": {
+        "inputTokens": 7454,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 70268.78340199997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35314,
+      "responseBytes": 1885,
+      "usage": {
+        "inputTokens": 7408,
+        "outputTokens": 1181
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 70268.57047599996,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 9128,
+      "responseBytes": 559,
+      "usage": {
+        "inputTokens": 1897,
+        "outputTokens": 300
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16193.26274799998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 47930,
+      "responseBytes": 27212,
+      "usage": {
+        "inputTokens": 9953,
+        "outputTokens": 9296
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 82821.83903299994,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46527,
+      "responseBytes": 27217,
+      "usage": {
+        "inputTokens": 9620,
+        "outputTokens": 9295
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 82822.10549400002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 45335,
+      "responseBytes": 27227,
+      "usage": {
+        "inputTokens": 9460,
+        "outputTokens": 9305
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 82822.21504799998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47499,
+      "responseBytes": 27200,
+      "usage": {
+        "inputTokens": 9854,
+        "outputTokens": 9286
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 82822.32489200006,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47064,
+      "responseBytes": 27221,
+      "usage": {
+        "inputTokens": 9808,
+        "outputTokens": 9303
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 82822.41776400001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 12183,
+      "responseBytes": 7148,
+      "usage": {
+        "inputTokens": 2521,
+        "outputTokens": 2411
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 16170.648728,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 45531,
+      "responseBytes": 27277,
+      "usage": {
+        "inputTokens": 9422,
+        "outputTokens": 9335
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 82934.26774099993,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46819,
+      "responseBytes": 27272,
+      "usage": {
+        "inputTokens": 9736,
+        "outputTokens": 9336
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 82934.51022399997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47458,
+      "responseBytes": 27250,
+      "usage": {
+        "inputTokens": 9836,
+        "outputTokens": 9312
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 82934.67194100004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46827,
+      "responseBytes": 27238,
+      "usage": {
+        "inputTokens": 9721,
+        "outputTokens": 9308
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 82934.77133499994,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47320,
+      "responseBytes": 27264,
+      "usage": {
+        "inputTokens": 9873,
+        "outputTokens": 9326
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 82934.88409499999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 12673,
+      "responseBytes": 7160,
+      "usage": {
+        "inputTokens": 2640,
+        "outputTokens": 2417
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13847.648233999964,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 33781,
+      "responseBytes": 1887,
+      "usage": {
+        "inputTokens": 7022,
+        "outputTokens": 1181
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 70940.93148799997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35069,
+      "responseBytes": 1887,
+      "usage": {
+        "inputTokens": 7336,
+        "outputTokens": 1181
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 70941.07428599999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35708,
+      "responseBytes": 1890,
+      "usage": {
+        "inputTokens": 7436,
+        "outputTokens": 1184
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 70941.11628800002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35077,
+      "responseBytes": 1888,
+      "usage": {
+        "inputTokens": 7321,
+        "outputTokens": 1182
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 70941.12342299998,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35570,
+      "responseBytes": 1889,
+      "usage": {
+        "inputTokens": 7473,
+        "outputTokens": 1183
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 70941.15055600007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 9618,
+      "responseBytes": 559,
+      "usage": {
+        "inputTokens": 2016,
+        "outputTokens": 298
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13614.912271999987,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34465,
+      "responseBytes": 1886,
+      "usage": {
+        "inputTokens": 7162,
+        "outputTokens": 1180
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 71295.80514199997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 34028,
+      "responseBytes": 1895,
+      "usage": {
+        "inputTokens": 7165,
+        "outputTokens": 1189
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 71295.85119200009,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35652,
+      "responseBytes": 1895,
+      "usage": {
+        "inputTokens": 7395,
+        "outputTokens": 1189
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 71295.87456799997,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35180,
+      "responseBytes": 1891,
+      "usage": {
+        "inputTokens": 7405,
+        "outputTokens": 1185
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 71295.89509800007,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 36497,
+      "responseBytes": 1888,
+      "usage": {
+        "inputTokens": 7617,
+        "outputTokens": 1182
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 71295.92729100003,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 8881,
+      "responseBytes": 560,
+      "usage": {
+        "inputTokens": 1842,
+        "outputTokens": 299
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 15853.825138000073,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46215,
+      "responseBytes": 27261,
+      "usage": {
+        "inputTokens": 9562,
+        "outputTokens": 9325
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 80770.95319199993,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 45778,
+      "responseBytes": 27286,
+      "usage": {
+        "inputTokens": 9565,
+        "outputTokens": 9340
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 80771.31864700001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47402,
+      "responseBytes": 27278,
+      "usage": {
+        "inputTokens": 9795,
+        "outputTokens": 9338
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 80771.42399300006,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46930,
+      "responseBytes": 27253,
+      "usage": {
+        "inputTokens": 9805,
+        "outputTokens": 9317
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 80771.53515899996,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 48247,
+      "responseBytes": 27294,
+      "usage": {
+        "inputTokens": 10017,
+        "outputTokens": 9343
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 80771.66654600005,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 11936,
+      "responseBytes": 7164,
+      "usage": {
+        "inputTokens": 2466,
+        "outputTokens": 2419
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 15869.836435999954,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 46716,
+      "responseBytes": 27217,
+      "usage": {
+        "inputTokens": 9705,
+        "outputTokens": 9297
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 82995.11754799983,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46929,
+      "responseBytes": 27286,
+      "usage": {
+        "inputTokens": 9762,
+        "outputTokens": 9340
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 82995.29516500002,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 46782,
+      "responseBytes": 27244,
+      "usage": {
+        "inputTokens": 9726,
+        "outputTokens": 9316
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 82995.38226500014,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47408,
+      "responseBytes": 27244,
+      "usage": {
+        "inputTokens": 9871,
+        "outputTokens": 9314
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 82995.53298000013,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 47145,
+      "responseBytes": 27244,
+      "usage": {
+        "inputTokens": 9782,
+        "outputTokens": 9312
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 82995.67898499989,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 11546,
+      "responseBytes": 7159,
+      "usage": {
+        "inputTokens": 2376,
+        "outputTokens": 2418
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 0,
+      "candidates": 50,
+      "elapsedMs": 13475.3293000001,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": false,
+      "requestBytes": 34966,
+      "responseBytes": 1894,
+      "usage": {
+        "inputTokens": 7305,
+        "outputTokens": 1188
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 1,
+      "candidates": 50,
+      "elapsedMs": 70991.93527500005,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35179,
+      "responseBytes": 1890,
+      "usage": {
+        "inputTokens": 7362,
+        "outputTokens": 1184
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 2,
+      "candidates": 50,
+      "elapsedMs": 70992.0859099999,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35032,
+      "responseBytes": 1893,
+      "usage": {
+        "inputTokens": 7326,
+        "outputTokens": 1187
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 3,
+      "candidates": 50,
+      "elapsedMs": 70991.08819000004,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35658,
+      "responseBytes": 1892,
+      "usage": {
+        "inputTokens": 7471,
+        "outputTokens": 1186
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 4,
+      "candidates": 50,
+      "elapsedMs": 70991.008134,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 35395,
+      "responseBytes": 1885,
+      "usage": {
+        "inputTokens": 7382,
+        "outputTokens": 1179
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "batch": 5,
+      "candidates": 13,
+      "elapsedMs": 70990.99918600009,
+      "status": 200,
+      "valid": true,
+      "exceededProductionDeadline": true,
+      "requestBytes": 8491,
+      "responseBytes": 560,
+      "usage": {
+        "inputTokens": 1752,
+        "outputTokens": 299
+      }
+    }
+  ],
+  "runs": [
+    {
+      "workload": "serial-6",
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "wallMs": 2513.079228,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "wallMs": 1826.1593300000004,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "wallMs": 1963.6290060000001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "wallMs": 1543.9845309999992,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1906.413138,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 2025.41302,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1910.0297950000004,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1514.3288400000001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1878.966112,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1938.1679209999966,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1897.3598170000005,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1517.7518899999995,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1558.000500000002,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1622.872109,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1753.077949999999,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1374.8878829999994,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1432.3031010000013,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1551.426574000001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1899.7810969999991,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1506.5828239999973,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1235.408451000003,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1479.7570419999975,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1873.5422439999966,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1472.928697999996,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1227.1569070000041,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1489.1406789999965,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 1866.7226070000033,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-6",
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 1461.297789999997,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "wallMs": 13993.074342,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "wallMs": 14999.945269000003,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "wallMs": 16418.04832999999,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "wallMs": 13848.780692,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 13970.80325099999,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16073.85424700001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16036.736573000002,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 13433.454738,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 13601.56156100001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 15773.937176999985,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 14081.312582000013,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 11382.986757000006,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 11513.307972999988,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 13906.695095000003,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 14086.956982000003,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 11368.260658999992,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 14972.830011000042,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16654.923277000024,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16988.492568999995,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 14766.04667000001,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 14251.381259999995,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16494.265260000015,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16968.785187,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 14085.692691000004,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 13998.216671000002,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16100.462933000003,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 16435.616210000007,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "serial-50",
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 13841.143027000013,
+      "valid": true,
+      "batches": 1,
+      "batchesOverProductionDeadline": 0
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "wallMs": 81412.06549999997,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "wallMs": 69890.13008699997,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 70270.1412350001,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 82823.39315000002,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 82935.59831100004,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 70942.01518499991,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 71296.83754999994,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 80772.72010499996,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "wallMs": 82996.45927999984,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    },
+    {
+      "workload": "catalog-263",
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "wallMs": 70992.94042999996,
+      "valid": true,
+      "batches": 6,
+      "batchesOverProductionDeadline": 5
+    }
+  ],
+  "summary": [
+    {
+      "workload": "serial-6",
+      "noul": {
+        "n": 12,
+        "meanMs": 1507.1688445,
+        "medianMs": 1472.928697999996,
+        "p95Ms": 1906.413138,
+        "minMs": 1227.1569070000041,
+        "maxMs": 1906.413138
+      },
+      "score": {
+        "n": 12,
+        "meanMs": 1775.6075712499994,
+        "medianMs": 1866.7226070000033,
+        "p95Ms": 2025.41302,
+        "minMs": 1479.7570419999975,
+        "maxMs": 2025.41302
+      },
+      "scoreToNoulMeanRatio": 1.178107932452023,
+      "pairedMeanDeltaMs": 268.4387267499992,
+      "pairedMedianDeltaMs": 261.9837719999923,
+      "batchesOverProductionDeadline": {
+        "noul": 0,
+        "score": 0
+      }
+    },
+    {
+      "workload": "serial-50",
+      "noul": {
+        "n": 12,
+        "meanMs": 13432.14043908334,
+        "medianMs": 13841.143027000013,
+        "p95Ms": 14972.830011000042,
+        "minMs": 11368.260658999992,
+        "maxMs": 14972.830011000042
+      },
+      "score": {
+        "n": 12,
+        "meanMs": 15800.169841000004,
+        "medianMs": 16073.85424700001,
+        "p95Ms": 16988.492568999995,
+        "minMs": 13906.695095000003,
+        "maxMs": 16988.492568999995
+      },
+      "scoreToNoulMeanRatio": 1.176295759611509,
+      "pairedMeanDeltaMs": 2368.029401916667,
+      "pairedMedianDeltaMs": 2242.88400000002,
+      "batchesOverProductionDeadline": {
+        "noul": 0,
+        "score": 0
+      }
+    },
+    {
+      "workload": "catalog-263",
+      "noul": {
+        "n": 4,
+        "meanMs": 70875.48359999998,
+        "medianMs": 70942.01518499991,
+        "p95Ms": 71296.83754999994,
+        "minMs": 70270.1412350001,
+        "maxMs": 71296.83754999994
+      },
+      "score": {
+        "n": 4,
+        "meanMs": 82382.04271149996,
+        "medianMs": 82823.39315000002,
+        "p95Ms": 82996.45927999984,
+        "minMs": 80772.72010499996,
+        "maxMs": 82996.45927999984
+      },
+      "scoreToNoulMeanRatio": 1.1623489326216039,
+      "pairedMeanDeltaMs": 11506.559111499984,
+      "pairedMedianDeltaMs": 11993.583126000129,
+      "batchesOverProductionDeadline": {
+        "noul": 20,
+        "score": 20
+      }
+    }
+  ],
+  "finishedAt": "2026-09-28T21:30:09.296Z",
+  "totals": {
+    "httpRequests": 116,
+    "validRequests": 116,
+    "costUsd": 0
+  }
+}

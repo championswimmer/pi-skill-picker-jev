@@ -31,10 +31,25 @@ export async function rankSkills(
   const fetcher = options.fetcher ?? fetch;
   const batchSize = Math.max(1, Math.min(60, options.batchSize ?? 40));
   const threshold = options.threshold ?? 0.75;
-  const scores: RankedSkill[] = [];
-  // Sequential batching prevents rate-limit bursts and keeps the context per decision bounded.
-  for (let start = 0; start < candidates.length; start += batchSize) {
-    const batch = candidates.slice(start, start + batchSize);
+  const batchCount = Math.ceil(candidates.length / batchSize);
+  const results: RankedSkill[][] = Array.from({ length: batchCount }, () => []);
+  let nextBatch = 0;
+  let failure: unknown;
+  let failed = false;
+  // Run up to three requests at a time, without leaving in-flight batches behind on failure.
+  async function worker(): Promise<void> {
+    while (nextBatch < batchCount && !failed) {
+      const index = nextBatch++;
+      try {
+        results[index] = await rankBatch(index);
+      } catch (error) {
+        if (!failed) failure = error;
+        failed = true;
+      }
+    }
+  }
+  async function rankBatch(index: number): Promise<RankedSkill[]> {
+    const batch = candidates.slice(index * batchSize, (index + 1) * batchSize);
     const questions = Object.fromEntries(batch.map((skill, i) => [
       `s${i}`, { type: "noul", instructions: `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
         criteria: { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
@@ -61,13 +76,16 @@ export async function rankSkills(
           console.error("[pi-skill-picker-jev] Could not record Jev usage:", error);
         }
       }
-      batch.forEach((skill, i) => {
+      return batch.flatMap((skill, i) => {
         const probability = data.answers?.[`s${i}`]?.noul;
-        if (typeof probability === "number" && Number.isFinite(probability) && probability >= threshold && probability <= 1) scores.push({ skill, probability });
+        return typeof probability === "number" && Number.isFinite(probability) && probability >= threshold && probability <= 1
+          ? [{ skill, probability }] : [];
       });
     } finally { clearTimeout(timeout); }
   }
-  return scores.sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6);
+  await Promise.all(Array.from({ length: Math.min(3, batchCount) }, () => worker()));
+  if (failed) throw failure;
+  return results.flat().sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6);
 }
 
 export function transcriptText(messages: Array<{ role: string; content?: unknown }>, lastPrompt = ""): string {

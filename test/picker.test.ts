@@ -40,6 +40,57 @@ test("Jev batches Pi skills, selects only threshold matches and fails closed", a
   assert.doesNotMatch(renderSkills(ranked.map(({ skill }) => skill)), /docker/);
 });
 
+test("Jev batches run concurrently with a limit of three and preserve ranking order", async () => {
+  const releases: Array<() => void> = [];
+  let active = 0;
+  let peak = 0;
+  const fetcher = async (_url: unknown, init: RequestInit) => {
+    active++;
+    peak = Math.max(peak, active);
+    const body = JSON.parse(init.body as string);
+    await new Promise<void>((resolve) => releases.push(resolve));
+    active--;
+    return new Response(JSON.stringify({ answers: { s0: { noul: 0.9 } } }), { status: 200 });
+  };
+  const ranking = rankSkills("task", Array.from({ length: 5 }, (_, i) => skill(`skill${i}`)), [],
+    { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch });
+  assert.equal(releases.length, 3);
+  assert.equal(peak, 3);
+  releases[2](); // A later batch finishes before an earlier one.
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(releases.length, 4);
+  assert.equal(peak, 3);
+  releases[3]();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(releases.length, 5);
+  releases[4]();
+  releases[1]();
+  releases[0]();
+  assert.deepEqual((await ranking).map(({ skill }) => skill.name),
+    ["skill0", "skill1", "skill2", "skill3", "skill4"]);
+});
+
+test("a failed batch waits for in-flight batches and does not start more or return partial selections", async () => {
+  const releases: Array<() => void> = [];
+  let completed = 0;
+  let started = 0;
+  const fetcher = async () => {
+    const index = started++;
+    if (index === 0) return new Response("unavailable", { status: 503 });
+    await new Promise<void>((resolve) => { releases.push(resolve); });
+    completed++;
+    return new Response(JSON.stringify({ answers: { s0: { noul: 0.99 } } }));
+  };
+  const ranking = rankSkills("task", Array.from({ length: 5 }, (_, i) => skill(`skill${i}`)), [],
+    { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(started, 3);
+  releases.forEach((release) => release());
+  await assert.rejects(ranking, /503/);
+  assert.equal(completed, 2);
+  assert.equal(started, 3);
+});
+
 test("filters only Pi's loaded skills and adds newly relevant Pi skills", async () => {
   const oldKey = process.env.OPENROUTER_API_KEY;
   const oldFetch = globalThis.fetch;

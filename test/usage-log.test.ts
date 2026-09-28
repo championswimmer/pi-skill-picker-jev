@@ -31,7 +31,7 @@ test("each Jev batch emits Pi session usage and a pi-stats-compatible sidecar ro
     assert.deepEqual(rows.map((r) => r.id), ["session-123:entry-1", "session-123:entry-2"]);
     assert.deepEqual(rows[0], {
       v: 1, id: "session-123:entry-1", ts: "2026-01-01T00:00:01.000Z",
-      source: "skill-picker-jev", label: "jev decision", provider: "openrouter", model: decision.model,
+      source: "skill-picker-jev", label: "decision", provider: "openrouter", model: decision.model,
       usage: { input: 142, output: 7, cacheRead: 0, cacheWrite: 0, reasoning: 0, cost: 0.000032 },
       sessionId: "session-123", usageEntryId: "entry-1", kind: "skill_picker_jev",
     });

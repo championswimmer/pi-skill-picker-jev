@@ -55,7 +55,7 @@ Pi's `pi-ai` model calls use chat/stream APIs, not Jev's dedicated Decisions end
 
 ## Usage and cost in pi-stats
 
-Every successful Jev Decisions API batch with reported usage is recorded as **one model invocation**, even if no new skills were selected. The extension appends Pi session usage (when supported) and a `usage.jsonl` sidecar at `<Pi agent dir>/skill-picker-jev/usage.jsonl`, following the same convention as `pi-context-prune`. **pi-stats** shows these as `typesafe/jev-… (jev decision)` model calls with their OpenRouter token counts and USD cost. It does not create synthetic tool calls. The usage records contain only counts, cost, model, and session identifiers—not prompts, skill descriptions, or API keys. Failed requests or responses without a reported cost are not counted as priced model invocations.
+Every successful Jev Decisions API batch with reported usage is recorded as **one model invocation**, even if no new skills were selected. The extension appends Pi session usage (when supported) and a `usage.jsonl` sidecar at `<Pi agent dir>/skill-picker-jev/usage.jsonl`, following the same convention as `pi-context-prune`. **pi-stats** shows these as `typesafe/jev-… (decision)` model calls with their OpenRouter token counts and USD cost. It does not create synthetic tool calls. The usage records contain only counts, cost, model, and session identifiers—not prompts, skill descriptions, or API keys. Failed requests or responses without a reported cost are not counted as priced model invocations.
 
 ## Development
 

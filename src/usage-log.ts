@@ -13,7 +13,7 @@ export interface UsageLogRecord {
   id: string;
   ts: string;
   source: "skill-picker-jev";
-  label: "jev decision";
+  label: "decision";
   provider: "openrouter";
   model: string;
   usage: { input: number; output: number; cacheRead: 0; cacheWrite: 0; reasoning: 0; cost: number };
@@ -59,7 +59,7 @@ export function reportDecisionUsage(
   try {
     writeLog({
       v: 1, id: entry ? `${sessionId}:${entry.id}` : randomUUID(), ts: entry?.timestamp ?? new Date().toISOString(),
-      source: "skill-picker-jev", label: "jev decision", provider: "openrouter", model: decision.model,
+      source: "skill-picker-jev", label: "decision", provider: "openrouter", model: decision.model,
       usage: { input: decision.input, output: decision.output, cacheRead: 0, cacheWrite: 0, reasoning: 0, cost: decision.cost },
       sessionId, ...(entry ? { usageEntryId: entry.id } : {}), kind: "skill_picker_jev",
     });

@@ -1,23 +1,34 @@
-const STATUS_KEY = "skill-picker";
+const WIDGET_KEY = "skill-picker-loading";
 const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
 interface StatusContext {
   hasUI: boolean;
-  ui: { setStatus(key: string, text: string | undefined): void };
+  isIdle(): boolean;
+  ui: {
+    setWidget(key: string, content: string[] | undefined, options?: { placement: "aboveEditor" }): void;
+    setWorkingMessage(message?: string): void;
+  };
 }
 
-/** Animate a Pi footer status only while a decision request is in flight. */
+/** Override Pi's Working row; before streaming starts, show a temporary row above the editor. */
 export async function withPickerStatus<T>(ctx: StatusContext, operation: () => Promise<T>): Promise<T> {
   if (!ctx.hasUI) return operation();
-  let frame = 0;
-  const show = () => ctx.ui.setStatus(STATUS_KEY, `${SPINNER[frame++ % SPINNER.length]} Picking the right skills…`);
-  show();
-  const timer = setInterval(show, 100);
-  timer.unref();
+  ctx.ui.setWorkingMessage("Picking Skills");
+  let timer: ReturnType<typeof setInterval> | undefined;
+  if (ctx.isIdle()) {
+    let frame = 0;
+    const show = () => ctx.ui.setWidget(WIDGET_KEY, [`${SPINNER[frame++ % SPINNER.length]} Picking Skills`], { placement: "aboveEditor" });
+    show();
+    timer = setInterval(show, 100);
+    timer.unref();
+  }
   try {
     return await operation();
   } finally {
-    clearInterval(timer);
-    ctx.ui.setStatus(STATUS_KEY, undefined);
+    if (timer) {
+      clearInterval(timer);
+      ctx.ui.setWidget(WIDGET_KEY, undefined);
+    }
+    ctx.ui.setWorkingMessage();
   }
 }

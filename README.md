@@ -2,7 +2,7 @@
 
 A [Pi](https://github.com/badlogic/pi-mono) extension that uses OpenRouter's **Jev Decisions API** to keep unrelated skill titles and descriptions out of the model's context.
 
-At the start of each user turn, the skills **Pi itself discovered for the current working directory/session** are filtered down to only those Jev selects for the user's request. Before subsequent model requests (including those after tools), Jev reviews the recent conversation and the unsent skills and can add newly relevant skills. Already selected skills remain available for the session. While Jev is deciding which skills to add, Pi shows an animated “Picking the right skills…” footer indicator, which clears when the decision finishes or fails. The full `SKILL.md` body is **not** injected: as in Pi's normal skill workflow, the model uses `read` on a selected skill's path when needed.
+At the start of each user turn, the skills **Pi itself discovered for the current working directory/session** are filtered down to only those Jev selects for the user's request. Before subsequent model requests (including those after tools), Jev reviews the recent conversation and the unsent skills and can add newly relevant skills. Already selected skills remain available for the session. While Jev is deciding which skills to add, Pi shows “Picking Skills” in its built-in Working indicator. Before the first model turn starts, an animated row above the input fills in until that indicator is available. Both clear when the decision finishes or fails. The full `SKILL.md` body is **not** injected: as in Pi's normal skill workflow, the model uses `read` on a selected skill's path when needed.
 
 ## Setup
 

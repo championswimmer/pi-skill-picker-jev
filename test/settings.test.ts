@@ -52,9 +52,9 @@ test("TUI settings command saves values and ranking uses them without env vars",
     const choices = ["Threshold: 0.75", "Max new skills: 6", "Done"];
     const inputs = ["bad", "0.9", "1"];
     const notifications: string[] = [];
-    const ctx = { hasUI: true, sessionManager: { getBranch: () => branch }, ui: {
+    const ctx = { hasUI: true, isIdle: () => true, sessionManager: { getBranch: () => branch }, ui: {
       select: async (_title: string, options: string[]) => { const choice = choices.shift(); assert.ok(!choice || options.includes(choice)); return choice; },
-      input: async () => inputs.shift(), notify: (message: string) => notifications.push(message), setStatus: () => {},
+      input: async () => inputs.shift(), notify: (message: string) => notifications.push(message), setWidget: () => {}, setWorkingMessage: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await commands.get("skill-picker")!.handler("settings", ctx);
     assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { threshold: 0.9, maxNew: 1 });

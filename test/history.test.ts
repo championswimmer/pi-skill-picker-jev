@@ -40,9 +40,9 @@ test("/skill-picker history shows per-turn additions and restores the active bra
       appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
     assert.deepEqual(commands.get("skill-picker")!.getArgumentCompletions("h"), [{ value: "history", label: "history" }]);
     const dialogs: { title: string; rows: string[] }[] = [];
-    const ctx = { hasUI: true, sessionManager: { getBranch: () => branch }, ui: {
+    const ctx = { hasUI: true, isIdle: () => true, sessionManager: { getBranch: () => branch }, ui: {
       select: async (title: string, rows: string[]) => { dialogs.push({ title, rows }); return "Close"; },
-      notify: () => {}, setStatus: () => {},
+      notify: () => {}, setWidget: () => {}, setWorkingMessage: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await handlers.get("session_start")!({}, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);

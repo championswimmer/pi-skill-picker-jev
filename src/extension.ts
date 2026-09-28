@@ -1,7 +1,5 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { discoverSkills, rankSkills, transcriptText, uniqueSkills, type Skill } from "./picker.ts";
+import type { ExtensionAPI, Skill } from "@earendil-works/pi-coding-agent";
+import { rankSkills, transcriptText } from "./picker.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -34,14 +32,19 @@ export default function skillPicker(pi: ExtensionAPI) {
 
   pi.on("before_agent_start", async (event, ctx) => {
     lastPrompt = event.prompt;
-    // Use Pi's loaded skills first, so its existing discovery/precedence rules win.
-    // PI_SKILL_PICKER_ROOT can point at any monorepo. Otherwise use ./mono, or cwd.
-    const root = process.env.PI_SKILL_PICKER_ROOT ?? (existsSync(join(ctx.cwd, "mono")) ? join(ctx.cwd, "mono") : ctx.cwd);
-    const discovered = discoverSkills(root);
-    const piSkills = event.systemPromptOptions.skills as Skill[];
-    inventory = uniqueSkills([...piSkills, ...discovered]);
+    // Intercept precisely the skills Pi loaded for this session/project.
+    // No independent filesystem scanning or additional skill sources.
+    const names = new Set<string>();
+    inventory = event.systemPromptOptions.skills.filter((skill) => {
+      if (skill.disableModelInvocation || names.has(skill.name)) return false;
+      names.add(skill.name);
+      return true;
+    });
+    for (const [name, skill] of selected) {
+      if (!inventory.some((available) => available.name === name && available.filePath === skill.filePath)) selected.delete(name);
+    }
     // Always remove Pi's original full skills list, including on API failure.
-    event.systemPromptOptions.skills = [...selected.values()] as typeof event.systemPromptOptions.skills;
+    event.systemPromptOptions.skills = [...selected.values()];
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (pending.length) {
       try {
@@ -56,7 +59,7 @@ export default function skillPicker(pi: ExtensionAPI) {
         console.error("[pi-skill-picker-jev] Initial ranking failed (skills hidden):", error);
       }
     }
-    event.systemPromptOptions.skills = [...selected.values()] as typeof event.systemPromptOptions.skills;
+    event.systemPromptOptions.skills = [...selected.values()];
     skipFirstRequest = true;
     lastContext = "";
   });

@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { discoverSkills, rankSkills, transcriptText, uniqueSkills, type Skill } from "../src/picker.ts";
+import type { Skill } from "@earendil-works/pi-coding-agent";
+import { rankSkills, transcriptText } from "../src/picker.ts";
 import skillPicker, { renderSkills } from "../src/extension.ts";
 
 function skill(name: string): Skill {
@@ -11,22 +9,7 @@ function skill(name: string): Skill {
     disableModelInvocation: false, sourceInfo: { path: `/skills/${name}/SKILL.md`, source: "test", scope: "project", origin: "top-level", baseDir: `/skills/${name}` } };
 }
 
-test("discovers only frontmatter; ignores dependencies, disabled and duplicate skills", () => {
-  const root = mkdtempSync(join(tmpdir(), "jev-skills-"));
-  try {
-    for (const dir of ["real", "node_modules/fake", "another", "hidden"]) mkdirSync(join(root, dir), { recursive: true });
-    writeFileSync(join(root, "real/SKILL.md"), "---\nname: review\ndescription: |\n  Reviews pull requests\n  and diffs.\n---\nHuge body");
-    writeFileSync(join(root, "node_modules/fake/SKILL.md"), "---\nname: fake\ndescription: unwanted\n---");
-    writeFileSync(join(root, "another/SKILL.md"), "---\nname: review\ndescription: Duplicate\n---");
-    writeFileSync(join(root, "hidden/SKILL.md"), "---\nname: hidden\ndescription: Hidden\ndisable-model-invocation: true\n---");
-    const found = discoverSkills(root);
-    assert.equal(found.length, 3);
-    assert.match(found.find((s) => s.description.startsWith("Reviews"))!.description, /and diffs/);
-    assert.deepEqual(uniqueSkills(found).map((s) => s.name), ["review"]);
-  } finally { rmSync(root, { recursive: true, force: true }); }
-});
-
-test("Jev batches questions, selects only threshold matches and fails closed", async () => {
+test("Jev batches Pi skills, selects only threshold matches and fails closed", async () => {
   const requested: string[] = [];
   const fetcher = async (_url: unknown, init: RequestInit) => {
     const body = JSON.parse(init.body as string);
@@ -42,23 +25,16 @@ test("Jev batches questions, selects only threshold matches and fails closed", a
   assert.doesNotMatch(renderSkills(ranked), /docker/);
 });
 
-test("ranks initial prompt then adds newly needed skills before the next model request", async () => {
-  const root = mkdtempSync(join(tmpdir(), "jev-extension-"));
-  const oldRoot = process.env.PI_SKILL_PICKER_ROOT;
+test("filters only Pi's loaded skills and adds newly relevant Pi skills", async () => {
   const oldKey = process.env.OPENROUTER_API_KEY;
   const oldFetch = globalThis.fetch;
   try {
-    process.env.PI_SKILL_PICKER_ROOT = root;
-    delete process.env.OPENROUTER_API_KEY; // Credential is provided by Pi, not read directly from the environment.
-    for (const name of ["review", "deploy", "irrelevant"]) {
-      mkdirSync(join(root, name));
-      writeFileSync(join(root, name, "SKILL.md"), `---\nname: ${name}\ndescription: ${name} expertise\n---\n`);
-    }
+    delete process.env.OPENROUTER_API_KEY;
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => {
         const name = q.instructions.match(/Name: (\w+)/)?.[1];
-        return [id, { noul: body.state.task.toLowerCase().includes(name) ? 0.97 : 0.02 }];
+        return [id, { noul: name === "external" || body.state.task.toLowerCase().includes(name) ? 0.97 : 0.02 }];
       }));
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;
@@ -66,12 +42,13 @@ test("ranks initial prompt then adds newly needed skills before the next model r
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler) } as any);
     await handlers.get("session_start")!();
     let authCalls = 0;
-    const ctx = { cwd: root, modelRegistry: { getApiKeyForProvider: async (provider: string) => {
+    const ctx = { cwd: "/tmp", modelRegistry: { getApiKeyForProvider: async (provider: string) => {
       assert.equal(provider, "openrouter");
       authCalls++;
       return "pi-stored-key";
     } } };
-    const event = { prompt: "Review this change", systemPromptOptions: { skills: [skill("legacy")] } };
+    const disabled = { ...skill("manual"), disableModelInvocation: true };
+    const event = { prompt: "Review this change", systemPromptOptions: { skills: [skill("review"), skill("deploy"), disabled, skill("review")] } };
     await handlers.get("before_agent_start")!(event, ctx);
     assert.deepEqual(event.systemPromptOptions.skills.map((s) => s.name), ["review"]);
     const messages = [{ role: "system", content: "Pi", sections: { skills: "ALL SKILLS" } },
@@ -80,14 +57,17 @@ test("ranks initial prompt then adds newly needed skills before the next model r
     const second = await handlers.get("context_with_system")!({ messages: [...messages,
       { role: "assistant", content: [{ type: "text", text: "Now deploy the change" }] }] }, ctx);
     assert.equal(authCalls, 2);
-    assert.deepEqual(second.messages.at(-1).role, "system");
+    assert.equal(second.messages.at(-1).role, "system");
     assert.match(second.messages.at(-1).sections.skills, /<name>deploy<\/name>/);
-    assert.doesNotMatch(second.messages.at(-1).sections.skills, /irrelevant|legacy/);
+    assert.doesNotMatch(second.messages.at(-1).sections.skills, /external|manual/);
+    // If Pi's inventory changes, previously selected skills that Pi no longer
+    // supplies must disappear instead of leaking into subsequent prompts.
+    const next = { prompt: "Unrelated task", systemPromptOptions: { skills: [skill("drawing")] } };
+    await handlers.get("before_agent_start")!(next, ctx);
+    assert.deepEqual(next.systemPromptOptions.skills, []);
   } finally {
     globalThis.fetch = oldFetch;
-    if (oldRoot === undefined) delete process.env.PI_SKILL_PICKER_ROOT; else process.env.PI_SKILL_PICKER_ROOT = oldRoot;
     if (oldKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldKey;
-    rmSync(root, { recursive: true, force: true });
   }
 });
 

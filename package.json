@@ -6,14 +6,13 @@
   "type": "module",
   "license": "MIT",
   "pi": {
-    "extensions": ["./src/extension.ts"]
+    "extensions": [
+      "./src/extension.ts"
+    ]
   },
   "scripts": {
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "yaml": "^2.9.0"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"

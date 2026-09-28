@@ -2,6 +2,7 @@ import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } f
 import { rankSkills, transcriptText } from "./picker.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, formatAddition, restoreHistory, type SkillAddition } from "./history.ts";
 import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
+import { withPickerStatus } from "./status.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -132,12 +133,12 @@ export default function skillPicker(pi: ExtensionAPI) {
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (pending.length) {
       try {
-        const newlySelected = await rankSkills(lastPrompt, pending, [...selected.values()], {
+        const newlySelected = await withPickerStatus(ctx, async () => rankSkills(lastPrompt, pending, [...selected.values()], {
           apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: settings.threshold,
           maxNew: settings.maxNew,
-        });
+        }));
         for (const skill of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, 1);
       } catch (error) {
@@ -160,12 +161,12 @@ export default function skillPicker(pi: ExtensionAPI) {
     if (context && context !== lastContext && pending.length) {
       lastContext = context;
       try {
-        const newlySelected = await rankSkills(context, pending, [...selected.values()], {
+        const newlySelected = await withPickerStatus(ctx, async () => rankSkills(context, pending, [...selected.values()], {
           apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: settings.threshold,
           maxNew: settings.maxNew,
-        });
+        }));
         for (const skill of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, requestNumber);
       } catch (error) {

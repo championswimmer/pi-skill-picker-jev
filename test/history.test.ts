@@ -36,7 +36,7 @@ test("/skill-picker history shows per-turn additions and restores the active bra
     const dialogs: { title: string; rows: string[] }[] = [];
     const ctx = { hasUI: true, sessionManager: { getBranch: () => branch }, ui: {
       select: async (title: string, rows: string[]) => { dialogs.push({ title, rows }); return "Close"; },
-      notify: () => {},
+      notify: () => {}, setStatus: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await handlers.get("session_start")!({}, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);

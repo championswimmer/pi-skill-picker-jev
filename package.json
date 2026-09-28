@@ -1,0 +1,26 @@
+{
+  "name": "pi-skill-picker-jev",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keep Pi's skill catalog out of context until Jev selects relevant skills",
+  "type": "module",
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./src/extension.ts"]
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.9.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@types/node": "^22.15.0",
+    "typescript": "^5.9.0"
+  }
+}

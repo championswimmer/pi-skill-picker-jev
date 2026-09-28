@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Skill } from "@earendil-works/pi-coding-agent";
-import { rankSkills, transcriptText } from "../src/picker.ts";
+import { rankSkills, transcriptText, type DecisionCallUsage } from "../src/picker.ts";
 import skillPicker, { renderSkills } from "../src/extension.ts";
 
 function skill(name: string): Skill {
@@ -11,16 +11,31 @@ function skill(name: string): Skill {
 
 test("Jev batches Pi skills, selects only threshold matches and fails closed", async () => {
   const requested: string[] = [];
+  const usageCalls: DecisionCallUsage[] = [];
   const fetcher = async (_url: unknown, init: RequestInit) => {
     const body = JSON.parse(init.body as string);
     requested.push(...Object.values(body.questions).map((q: any) => q.instructions));
     const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { noul: q.instructions.includes("review") ? 0.93 : 0.12 }]));
-    return new Response(JSON.stringify({ answers }), { status: 200 });
+    return new Response(JSON.stringify({ model: "typesafe/jev-1.13-20260917", usage: {
+      input_tokens: 100, output_tokens: 5, cost: 0.00003 }, answers }), { status: 200 });
   };
-  const ranked = await rankSkills("Review my PR", [skill("review"), skill("docker"), skill("deploy")], [], { apiKey: "test", batchSize: 2, fetcher: fetcher as typeof fetch });
+  const ranked = await rankSkills("Review my PR", [skill("review"), skill("docker"), skill("deploy")], [],
+    { apiKey: "test", batchSize: 2, fetcher: fetcher as typeof fetch, onUsage: (usage) => usageCalls.push(usage) });
   assert.deepEqual(ranked.map(({ skill, probability }) => [skill.name, probability]), [["review", 0.93]]);
   assert.equal(requested.length, 3);
+  assert.deepEqual(usageCalls, [
+    { model: "typesafe/jev-1.13-20260917", input: 100, output: 5, cost: 0.00003 },
+    { model: "typesafe/jev-1.13-20260917", input: 100, output: 5, cost: 0.00003 },
+  ]); // both batches count, even when the second batch selected nothing
   assert.deepEqual(await rankSkills("task", [skill("docker")], [], { apiKey: "" }), []);
+  const originalError = console.error;
+  try {
+    console.error = () => {}; // intentional usage logger failure must not affect a decision
+    const stillSelected = await rankSkills("Review my PR", [skill("review")], [], {
+      apiKey: "test", fetcher: fetcher as typeof fetch, onUsage: () => { throw new Error("log unwritable"); },
+    });
+    assert.deepEqual(stillSelected.map(({ skill }) => skill.name), ["review"]);
+  } finally { console.error = originalError; }
   assert.match(renderSkills(ranked.map(({ skill }) => skill)), /<name>review<\/name>/);
   assert.doesNotMatch(renderSkills(ranked.map(({ skill }) => skill)), /docker/);
 });

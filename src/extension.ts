@@ -4,6 +4,7 @@ import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type Sk
 import { showTurnSkills } from "./history-ui.ts";
 import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 import { withPickerStatus } from "./status.ts";
+import { reportDecisionUsage } from "./usage-log.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -154,6 +155,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: settings.threshold,
           maxNew: settings.maxNew,
+          onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
         }));
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, 1);
@@ -182,6 +184,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: settings.threshold,
           maxNew: settings.maxNew,
+          onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
         }));
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, requestNumber);

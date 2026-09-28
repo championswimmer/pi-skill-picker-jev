@@ -5,6 +5,13 @@ export interface RankedSkill {
   probability: number;
 }
 
+export interface DecisionCallUsage {
+  model: string;
+  input: number;
+  output: number;
+  cost: number;
+}
+
 export interface DecisionOptions {
   apiKey: string;
   model?: string;
@@ -12,6 +19,8 @@ export interface DecisionOptions {
   batchSize?: number;
   maxNew?: number;
   fetcher?: typeof fetch;
+  /** One callback per successful Jev API request/batch, including batches with no selected skills. */
+  onUsage?: (usage: DecisionCallUsage) => void;
 }
 
 /** Rank every unsent candidate in batches. Never fail open by displaying all skills. */
@@ -41,7 +50,17 @@ export async function rankSkills(
         }, questions }),
       });
       if (!response.ok) throw new Error(`OpenRouter returned ${response.status}`);
-      const data = await response.json() as { answers?: Record<string, { noul?: number }> };
+      const data = await response.json() as { model?: string; usage?: { input_tokens?: number; output_tokens?: number; cost?: number }; answers?: Record<string, { noul?: number }> };
+      const usage = data.usage;
+      if (usage && typeof usage.cost === "number" && Number.isFinite(usage.cost) && usage.cost >= 0) {
+        const nonnegative = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : 0;
+        try {
+          options.onUsage?.({ model: data.model || options.model || "typesafe/jev-1.13",
+            input: nonnegative(usage.input_tokens), output: nonnegative(usage.output_tokens), cost: usage.cost });
+        } catch (error) {
+          console.error("[pi-skill-picker-jev] Could not record Jev usage:", error);
+        }
+      }
       batch.forEach((skill, i) => {
         const probability = data.answers?.[`s${i}`]?.noul;
         if (typeof probability === "number" && Number.isFinite(probability) && probability >= threshold && probability <= 1) scores.push({ skill, probability });

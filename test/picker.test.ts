@@ -72,7 +72,7 @@ test("filters only Pi's loaded skills and adds newly relevant Pi skills", async 
       { role: "user", content: [{ type: "text", text: "Review this change" }] }];
     assert.equal(await handlers.get("context_with_system")!({ messages }, ctx), undefined);
     const second = await handlers.get("context_with_system")!({ messages: [...messages,
-      { role: "assistant", content: [{ type: "text", text: "Now deploy the change" }] }] }, ctx);
+      { role: "toolResult", toolCallId: "call-deploy", content: [{ type: "text", text: "Now deploy the change" }] }] }, ctx);
     assert.equal(authCalls, 2);
     assert.equal(second.messages.at(-1).role, "system");
     assert.match(second.messages.at(-1).sections.skills, /<name>deploy<\/name>/);

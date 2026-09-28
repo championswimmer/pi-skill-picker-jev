@@ -2,7 +2,7 @@
 
 A [Pi](https://github.com/badlogic/pi-mono) extension that uses OpenRouter's **Jev Decisions API** to keep unrelated skill titles and descriptions out of the model's context.
 
-At the start of each user turn, the skills **Pi itself discovered for the current working directory/session** are filtered down to only those Jev selects for the user's request. Before subsequent model requests (including those after tools), Jev reviews the recent conversation and the unsent skills and can add newly relevant skills. Already selected skills remain available for the session. While Jev is deciding which skills to add, Pi shows “Picking Skills” in its built-in Working indicator. Before the first model turn starts, an animated row above the input fills in until that indicator is available. Both clear when the decision finishes or fails. The full `SKILL.md` body is **not** injected: as in Pi's normal skill workflow, the model uses `read` on a selected skill's path when needed.
+At the start of each user turn, the skills **Pi itself discovered for the current working directory/session** are filtered down to only those Jev selects for the user's request. Depending on the **When to pick** setting, later model requests can also cause Jev to review the conversation and add newly relevant skills. Already selected skills remain available for the session. While Jev is deciding which skills to add, Pi shows “Picking Skills” in its built-in Working indicator. Before the first model turn starts, an animated row above the input fills in until that indicator is available. Both clear when the decision finishes or fails. The full `SKILL.md` body is **not** injected: as in Pi's normal skill workflow, the model uses `read` on a selected skill's path when needed.
 
 ## Setup
 
@@ -35,6 +35,15 @@ Run **`/skill-picker settings`** in Pi to open a TUI menu. Choose a setting, ent
 | --- | --- | --- | --- |
 | Threshold | `0.75` | 0–1 | Minimum Jev probability to include a skill. |
 | Max new skills | `6` | 0–100 (whole number) | Maximum newly added skills per ranking pass. |
+| When to pick | Prompt + tool results | See below | Which later model requests can trigger a new Jev decision. |
+
+The **When to pick** menu offers:
+
+- **Prompt only:** Pick on each new user prompt; never re-pick during that prompt's tool loop. Fastest.
+- **Prompt + tool results (default):** Also re-pick before the next model request when a *new completed textual tool result* appears. Batched tool results cause one ranking pass, not one per tool.
+- **Every changed request:** Also re-pick when the recent user/assistant/tool text changes between model requests. Most adaptive, but slower and more expensive.
+
+Thinking tokens, streaming updates, non-text tool output, and retries with unchanged context do not trigger another decision. With no remaining candidate skills, no Jev call is made regardless of mode.
 
 Changes take effect immediately and persist across Pi sessions in `~/.pi/agent/pi-skill-picker-jev.json` (or the configured Pi agent directory). The old `PI_SKILL_PICKER_THRESHOLD` and `PI_SKILL_PICKER_MAX_NEW` environment variables are no longer used.
 
@@ -42,7 +51,7 @@ Run **`/skill-picker history`** to open a two-level history UI. First select a *
 
 OpenRouter credentials are resolved through Pi's provider authentication (`ctx.modelRegistry.getApiKeyForProvider("openrouter")`). Configure them through Pi auth, `models.json`, or `OPENROUTER_API_KEY`; without credentials, skills stay hidden (fail closed). The optional `PI_SKILL_PICKER_MODEL` variable still selects the OpenRouter Decisions model (default: `typesafe/jev-1.13`).
 
-Pi's `pi-ai` model calls use chat/stream APIs, not Jev's dedicated Decisions endpoint. The extension therefore still sends HTTP requests to the [Decisions API](https://openrouter.ai/docs/api/reference/decisions), but obtains the OpenRouter key from **Pi's own provider authentication** rather than reading it from `process.env`. Ranking uses only Pi's loaded skill metadata and runs in batches of 40. This means a very large catalog makes each model request slower and incurs API costs. If a decision request fails, the existing selection is retained and **the full catalog is never exposed**. Selection is reconstructed from the session's scored addition history on reload; a new session starts over. Manual `/skill:name` invocation remains Pi's responsibility; it still works for skills Pi discovered.
+Pi's `pi-ai` model calls use chat/stream APIs, not Jev's dedicated Decisions endpoint. The extension therefore still sends HTTP requests to the [Decisions API](https://openrouter.ai/docs/api/reference/decisions), but obtains the OpenRouter key from **Pi's own provider authentication** rather than reading it from `process.env`. Ranking uses only Pi's loaded skill metadata and runs in batches of 40. This means a large catalog makes each **ranking pass** slower and incurs API costs; choose a less frequent When to pick mode if this becomes noticeable. If a decision request fails, the existing selection is retained and **the full catalog is never exposed**. Selection is reconstructed from the session's scored addition history on reload; a new session starts over. Manual `/skill:name` invocation remains Pi's responsibility; it still works for skills Pi discovered.
 
 ## Usage and cost in pi-stats
 

@@ -72,10 +72,10 @@ export async function rankSkills(
 
 export function transcriptText(messages: Array<{ role: string; content?: unknown }>, lastPrompt = ""): string {
   const parts = messages.filter((m) => m.role === "user" || m.role === "assistant" || m.role === "toolResult")
-    .slice(-14).map((m) => {
+    .map((m) => {
       const blocks = typeof m.content === "string" ? m.content : Array.isArray(m.content)
         ? m.content.filter((b) => b?.type === "text" && typeof b.text === "string").map((b) => b.text).join(" ") : "";
-      return `${m.role}: ${blocks.slice(0, 1200)}`;
-    });
+      return blocks.trim() ? `${m.role}: ${blocks.slice(0, 1200)}` : "";
+    }).filter(Boolean).slice(-14);
   return [...parts, lastPrompt && `Current user request: ${lastPrompt}`].filter(Boolean).join("\n").slice(-12_000);
 }

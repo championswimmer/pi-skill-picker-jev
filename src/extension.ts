@@ -1,8 +1,9 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
 import { rankSkills, transcriptText, type RankedSkill } from "./picker.ts";
+import { TriggerTracker } from "./triggers.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type SkillAddition } from "./history.ts";
 import { showTurnSkills } from "./history-ui.ts";
-import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
+import { TRIGGER_LABELS, TRIGGER_MODES, parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 import { withPickerStatus } from "./status.ts";
 import { reportDecisionUsage } from "./usage-log.ts";
 
@@ -25,7 +26,7 @@ export default function skillPicker(pi: ExtensionAPI) {
   let inventory: Skill[] = [];
   let skipFirstRequest = false;
   let lastPrompt = "";
-  let lastContext = "";
+  const triggers = new TriggerTracker();
   let settings = readSettings();
   let additions: SkillAddition[] = [];
   let knownAdded = new Set<string>();
@@ -41,7 +42,7 @@ export default function skillPicker(pi: ExtensionAPI) {
     selected.clear();
     inventory = [];
     lastPrompt = "";
-    lastContext = "";
+    triggers.reset();
     skipFirstRequest = false;
   };
 
@@ -58,8 +59,24 @@ export default function skillPicker(pi: ExtensionAPI) {
       for (;;) {
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
-        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, "Done"]);
+        const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
+        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, "Done"]);
         if (!choice || choice === "Done") break;
+        if (choice === triggerOption) {
+          const picked = await ctx.ui.select("When to pick skills", TRIGGER_MODES.map((mode) => TRIGGER_LABELS[mode]));
+          const triggerMode = TRIGGER_MODES.find((mode) => TRIGGER_LABELS[mode] === picked);
+          if (triggerMode) {
+            try {
+              const updated = { ...settings, triggerMode };
+              writeSettings(updated);
+              settings = updated;
+              ctx.ui.notify("Skill picker settings saved.", "info");
+            } catch (error) {
+              ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
+            }
+          }
+          continue;
+        }
         const threshold = choice === thresholdOption;
         for (;;) {
           const value = await ctx.ui.input(
@@ -165,19 +182,20 @@ export default function skillPicker(pi: ExtensionAPI) {
     }
     event.systemPromptOptions.skills = [...selected.values()];
     skipFirstRequest = true;
-    lastContext = "";
+    triggers.reset();
   });
 
   pi.on("context_with_system", async (event, ctx) => {
     if (skipFirstRequest) {
       skipFirstRequest = false;
+      triggers.snapshot(event.messages, lastPrompt);
       return;
     }
     requestNumber++;
-    const context = transcriptText(event.messages, lastPrompt);
+    const shouldRank = triggers.shouldRank(settings.triggerMode, event.messages, lastPrompt);
     const pending = inventory.filter((skill) => !selected.has(skill.name));
-    if (context && context !== lastContext && pending.length) {
-      lastContext = context;
+    if (shouldRank && pending.length) {
+      const context = transcriptText(event.messages, lastPrompt);
       try {
         const newlySelected = await withPickerStatus(ctx, async () => rankSkills(context, pending, [...selected.values()], {
           apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",

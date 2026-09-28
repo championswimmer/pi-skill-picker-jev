@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { Skill } from "@earendil-works/pi-coding-agent";
@@ -26,10 +26,13 @@ test("settings validate values and persist across loads", () => {
     assert.equal(parseMaxNew("100"), 100);
     assert.equal(parseMaxNew("1.5"), undefined);
     assert.equal(parseMaxNew("101"), undefined);
-    writeSettings({ threshold: 0.91, maxNew: 2 }, path);
-    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2 });
-    assert.throws(() => writeSettings({ threshold: 2, maxNew: 1 }, path), /Invalid/);
-    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2 });
+    writeSettings({ threshold: 0.91, maxNew: 2, triggerMode: "every-request" }, path);
+    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
+    assert.throws(() => writeSettings({ threshold: 2, maxNew: 1, triggerMode: "prompt-only" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any }, path), /Invalid/);
+    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
+    writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3 })); // pre-mode config migrates
+    assert.deepEqual(readSettings(path), { threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools" });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -49,7 +52,7 @@ test("TUI settings command saves values and ranking uses them without env vars",
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler),
       registerCommand: (name: string, command: { handler: Function }) => commands.set(name, command),
       appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
-    const choices = ["Threshold: 0.75", "Max new skills: 6", "Done"];
+    const choices = ["Threshold: 0.75", "Max new skills: 6", "When to pick: Prompt + tool results", "Prompt only", "Done"];
     const inputs = ["bad", "0.9", "1"];
     const notifications: string[] = [];
     const ctx = { hasUI: true, isIdle: () => true, sessionManager: { getBranch: () => branch }, ui: {
@@ -57,10 +60,12 @@ test("TUI settings command saves values and ranking uses them without env vars",
       input: async () => inputs.shift(), notify: (message: string) => notifications.push(message), setWidget: () => {}, setWorkingMessage: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await commands.get("skill-picker")!.handler("settings", ctx);
-    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { threshold: 0.9, maxNew: 1 });
+    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { threshold: 0.9, maxNew: 1, triggerMode: "prompt-only" });
     assert.match(notifications.join(" "), /number between 0 and 1/);
     await handlers.get("session_start")!({}, ctx);
+    let decisionCalls = 0;
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
+      decisionCalls++;
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { noul: q.instructions.includes("review") ? 0.96 : 0.85 }]));
       return new Response(JSON.stringify({ answers }), { status: 200 });
@@ -68,6 +73,11 @@ test("TUI settings command saves values and ranking uses them without env vars",
     const event = { prompt: "Use relevant skills", systemPromptOptions: { skills: [skill("review"), skill("deploy")] } };
     await handlers.get("before_agent_start")!(event, ctx);
     assert.deepEqual(event.systemPromptOptions.skills.map((s) => s.name), ["review"]);
+    const messages = [{ role: "system", content: "Pi" }, { role: "user", content: "Use relevant skills" }];
+    await handlers.get("context_with_system")!({ messages }, ctx);
+    await handlers.get("context_with_system")!({ messages: [...messages,
+      { role: "toolResult", toolCallId: "call-deploy", content: "Now deploy" }] }, ctx);
+    assert.equal(decisionCalls, 1); // prompt-only suppresses follow-up model calls
   } finally {
     globalThis.fetch = oldFetch;
     if (oldDir === undefined) delete process.env.PI_CODING_AGENT_DIR; else process.env.PI_CODING_AGENT_DIR = oldDir;

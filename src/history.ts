@@ -1,6 +1,6 @@
 export interface ScoredSkill {
   name: string;
-  /** Jev's noul probability; null for records saved before scores were captured. */
+  /** Normalized Score rating, or legacy Noul probability; null for unscored records. */
   score: number | null;
 }
 
@@ -9,6 +9,8 @@ export interface SkillAddition {
   step: number;
   threshold: number | null;
   skills: ScoredSkill[];
+  /** Absent on legacy Noul records. */
+  scoreType?: "score";
 }
 
 interface BranchEntry {
@@ -44,7 +46,8 @@ export function restoreHistory(branch: BranchEntry[]): { turn: number; additions
     }
     if (skills.length !== data.skills.length) continue;
     additions.push({ turn: data.turn as number, step: data.step as number,
-      threshold: probability(data.threshold) ? data.threshold : null, skills });
+      threshold: probability(data.threshold) ? data.threshold : null, skills,
+      ...(data.scoreType === "score" ? { scoreType: "score" as const } : {}) });
   }
   return { turn, additions, selectedNames: new Set(additions.flatMap((event) => event.skills.map((s) => s.name))) };
 }
@@ -52,11 +55,12 @@ export function restoreHistory(branch: BranchEntry[]): { turn: number; additions
 function skillRow(entry: SkillAddition, skill: ScoredSkill): string {
   const phase = entry.step === 1 ? "initial" : `follow-up #${entry.step}`;
   const relevance = skill.score === null ? "score unavailable" :
-    `score ${skill.score.toFixed(3)}${entry.threshold === null ? "" : ` ≥ ${entry.threshold.toFixed(3)}`}`;
+    `${entry.scoreType === "score" ? "rating" : "Noul probability"} ${skill.score.toFixed(3)}${entry.threshold === null ? "" : ` ≥ ${entry.threshold.toFixed(3)}`}`;
   return `Turn ${entry.turn} · ${phase} · ${skill.name} (${relevance})`;
 }
 
 export interface HistorySkill extends ScoredSkill {
+  scoreType?: "score";
   step: number;
   threshold: number | null;
 }
@@ -71,13 +75,14 @@ export function groupHistoryByTurn(additions: SkillAddition[]): TurnHistory[] {
   const turns = new Map<number, HistorySkill[]>();
   for (const entry of additions) {
     const skills = turns.get(entry.turn) ?? [];
-    skills.push(...entry.skills.map((skill) => ({ ...skill, step: entry.step, threshold: entry.threshold })));
+    skills.push(...entry.skills.map((skill) => ({ ...skill, step: entry.step, threshold: entry.threshold,
+      ...(entry.scoreType ? { scoreType: entry.scoreType } : {}) })));
     turns.set(entry.turn, skills);
   }
   return [...turns].map(([turn, skills]) => ({ turn, skills }));
 }
 
 export function formatHistorySkill(turn: number, skill: HistorySkill): string {
-  return skillRow({ turn, step: skill.step, threshold: skill.threshold, skills: [skill] }, skill)
+  return skillRow({ turn, step: skill.step, threshold: skill.threshold, scoreType: skill.scoreType, skills: [skill] }, skill)
     .replace(`Turn ${turn} · `, "");
 }

@@ -68,7 +68,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
           threshold: 0, maxNew: available.length, globalImportance: !query, topicSearch: !!query,
           requireKey: true, showStatus: false, signal: AbortSignal.timeout(30_000),
         });
-        scores = new Map(ranked.map(({ skill, probability }) => [skill.name, probability]));
+        scores = new Map(ranked.map(({ skill, score }) => [skill.name, score]));
         index = 0;
       } catch (error) {
         rankError = `Relevance sort unavailable: ${String(error)}`;

@@ -2,6 +2,7 @@ import type { ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
 import { rankSkills, type DecisionOptions } from "./picker.ts";
 import { reportDecisionUsage } from "./usage-log.ts";
 import { withPickerStatus } from "./status.ts";
+import { readSettings } from "./settings.ts";
 
 /** One Decisions pipeline for task matching and project-wide importance scoring. */
 export function decideSkills(
@@ -13,8 +14,12 @@ export function decideSkills(
   },
 ) {
   const operation = async () => {
+    const settings = readSettings();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let keyRequest = ctx.modelRegistry.getApiKeyForProvider("openrouter");
+    // Custom servers may be unauthenticated. Never leak Pi's OpenRouter key to them.
+    let keyRequest = settings.apiToken !== undefined || settings.apiBaseUrl !== undefined
+      ? Promise.resolve(settings.apiToken ?? "")
+      : ctx.modelRegistry.getApiKeyForProvider("openrouter");
     if (options.requireKey) {
       // Auth providers may refresh credentials; do not leave a dialog stuck indefinitely.
       keyRequest = Promise.race([keyRequest, new Promise<never>((_, reject) => {
@@ -24,11 +29,12 @@ export function decideSkills(
     let apiKey: string;
     try { apiKey = await keyRequest ?? ""; }
     finally { if (timer) clearTimeout(timer); }
-    if (options.requireKey && !apiKey) throw new Error("OpenRouter authentication is required for relevance sorting");
+    if (options.requireKey && !apiKey && !settings.apiBaseUrl) throw new Error("OpenRouter authentication is required for relevance sorting");
     return rankSkills(task, candidates, alreadySent, {
       ...options,
       apiKey,
-      model: process.env.PI_SKILL_PICKER_MODEL,
+      apiBaseUrl: settings.apiBaseUrl,
+      model: settings.model ?? process.env.PI_SKILL_PICKER_MODEL,
       onUsage: (usage) => reportDecisionUsage(ctx.sessionManager as unknown as Parameters<typeof reportDecisionUsage>[0], usage),
     });
   };

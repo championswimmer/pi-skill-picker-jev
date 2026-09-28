@@ -1,0 +1,959 @@
+{
+  "label": "jev-1.13",
+  "model": "typesafe/jev-1.13",
+  "endpoint": "https://openrouter.ai/api/alpha/decisions",
+  "startedAt": "2026-09-28T20:23:00.756Z",
+  "node": "v26.10.0",
+  "rounds": 12,
+  "warmupPairs": 2,
+  "batchSizes": [
+    6,
+    50
+  ],
+  "concurrency": 1,
+  "samples": [
+    {
+      "size": 6,
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "elapsedMs": 441.74959300000006,
+      "status": 200,
+      "requestBytes": 2321,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 798,
+        "output_tokens": 106,
+        "cost": 0.000033516
+      }
+    },
+    {
+      "size": 6,
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "elapsedMs": 253.75613399999997,
+      "status": 200,
+      "requestBytes": 3731,
+      "responseBytes": 3291,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1176,
+        "output_tokens": 88,
+        "cost": 0.000049392
+      }
+    },
+    {
+      "size": 6,
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "elapsedMs": 238.922192,
+      "status": 200,
+      "requestBytes": 3720,
+      "responseBytes": 3300,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1172,
+        "output_tokens": 88,
+        "cost": 0.000049224
+      }
+    },
+    {
+      "size": 6,
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "elapsedMs": 215.50116000000003,
+      "status": 200,
+      "requestBytes": 2310,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 794,
+        "output_tokens": 106,
+        "cost": 0.000033348
+      }
+    },
+    {
+      "size": 6,
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 218.69378900000015,
+      "status": 200,
+      "requestBytes": 2325,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 796,
+        "output_tokens": 106,
+        "cost": 0.000033432
+      }
+    },
+    {
+      "size": 6,
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 225.31202299999995,
+      "status": 200,
+      "requestBytes": 3735,
+      "responseBytes": 3302,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1174,
+        "output_tokens": 88,
+        "cost": 0.000049308
+      }
+    },
+    {
+      "size": 6,
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 269.526705,
+      "status": 200,
+      "requestBytes": 3715,
+      "responseBytes": 3316,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1171,
+        "output_tokens": 88,
+        "cost": 0.000049182
+      }
+    },
+    {
+      "size": 6,
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 253.69568600000002,
+      "status": 200,
+      "requestBytes": 2305,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 793,
+        "output_tokens": 106,
+        "cost": 0.000033306
+      }
+    },
+    {
+      "size": 6,
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 265.503432,
+      "status": 200,
+      "requestBytes": 2308,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 796,
+        "output_tokens": 106,
+        "cost": 0.000033432
+      }
+    },
+    {
+      "size": 6,
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 261.4207720000004,
+      "status": 200,
+      "requestBytes": 3718,
+      "responseBytes": 3317,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1174,
+        "output_tokens": 88,
+        "cost": 0.000049308
+      }
+    },
+    {
+      "size": 6,
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 267.4963480000001,
+      "status": 200,
+      "requestBytes": 3714,
+      "responseBytes": 3268,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1173,
+        "output_tokens": 88,
+        "cost": 0.000049266
+      }
+    },
+    {
+      "size": 6,
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 206.63536300000032,
+      "status": 200,
+      "requestBytes": 2304,
+      "responseBytes": 384,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 795,
+        "output_tokens": 106,
+        "cost": 0.00003339
+      }
+    },
+    {
+      "size": 6,
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 226.71690900000021,
+      "status": 200,
+      "requestBytes": 2321,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 798,
+        "output_tokens": 106,
+        "cost": 0.000033516
+      }
+    },
+    {
+      "size": 6,
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 312.63644799999975,
+      "status": 200,
+      "requestBytes": 3731,
+      "responseBytes": 3298,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1176,
+        "output_tokens": 88,
+        "cost": 0.000049392
+      }
+    },
+    {
+      "size": 6,
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 231.6522240000004,
+      "status": 200,
+      "requestBytes": 3720,
+      "responseBytes": 3300,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1172,
+        "output_tokens": 88,
+        "cost": 0.000049224
+      }
+    },
+    {
+      "size": 6,
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 250.294989,
+      "status": 200,
+      "requestBytes": 2310,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 794,
+        "output_tokens": 106,
+        "cost": 0.000033348
+      }
+    },
+    {
+      "size": 6,
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 230.929983,
+      "status": 200,
+      "requestBytes": 2325,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 796,
+        "output_tokens": 106,
+        "cost": 0.000033432
+      }
+    },
+    {
+      "size": 6,
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 253.51832999999988,
+      "status": 200,
+      "requestBytes": 3735,
+      "responseBytes": 3308,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1174,
+        "output_tokens": 88,
+        "cost": 0.000049308
+      }
+    },
+    {
+      "size": 6,
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 268.95758300000034,
+      "status": 200,
+      "requestBytes": 3715,
+      "responseBytes": 3315,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1171,
+        "output_tokens": 88,
+        "cost": 0.000049182
+      }
+    },
+    {
+      "size": 6,
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 245.5334130000001,
+      "status": 200,
+      "requestBytes": 2305,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 793,
+        "output_tokens": 106,
+        "cost": 0.000033306
+      }
+    },
+    {
+      "size": 6,
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 258.68361300000015,
+      "status": 200,
+      "requestBytes": 2309,
+      "responseBytes": 384,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 797,
+        "output_tokens": 106,
+        "cost": 0.000033474
+      }
+    },
+    {
+      "size": 6,
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 241.76069000000007,
+      "status": 200,
+      "requestBytes": 3719,
+      "responseBytes": 3321,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1175,
+        "output_tokens": 88,
+        "cost": 0.00004935
+      }
+    },
+    {
+      "size": 6,
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 310.4382309999992,
+      "status": 200,
+      "requestBytes": 3715,
+      "responseBytes": 3265,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1174,
+        "output_tokens": 88,
+        "cost": 0.000049308
+      }
+    },
+    {
+      "size": 6,
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 230.08652400000028,
+      "status": 200,
+      "requestBytes": 2305,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 796,
+        "output_tokens": 106,
+        "cost": 0.000033432
+      }
+    },
+    {
+      "size": 6,
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 234.9513619999998,
+      "status": 200,
+      "requestBytes": 2322,
+      "responseBytes": 385,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 799,
+        "output_tokens": 106,
+        "cost": 0.000033558
+      }
+    },
+    {
+      "size": 6,
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 281.287139,
+      "status": 200,
+      "requestBytes": 3732,
+      "responseBytes": 3298,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1177,
+        "output_tokens": 88,
+        "cost": 0.000049434
+      }
+    },
+    {
+      "size": 6,
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 252.5935010000003,
+      "status": 200,
+      "requestBytes": 3721,
+      "responseBytes": 3303,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 1173,
+        "output_tokens": 88,
+        "cost": 0.000049266
+      }
+    },
+    {
+      "size": 6,
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 226.13535200000024,
+      "status": 200,
+      "requestBytes": 2311,
+      "responseBytes": 384,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 795,
+        "output_tokens": 106,
+        "cost": 0.00003339
+      }
+    },
+    {
+      "size": 50,
+      "round": -2,
+      "warmup": true,
+      "type": "noul",
+      "elapsedMs": 260.36132199999975,
+      "status": 200,
+      "requestBytes": 18242,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4593,
+        "output_tokens": 894,
+        "cost": 0.000192906
+      }
+    },
+    {
+      "size": 50,
+      "round": -2,
+      "warmup": true,
+      "type": "score",
+      "elapsedMs": 381.944942000001,
+      "status": 200,
+      "requestBytes": 29992,
+      "responseBytes": 26136,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7743,
+        "output_tokens": 744,
+        "cost": 0.000325206
+      }
+    },
+    {
+      "size": 50,
+      "round": -1,
+      "warmup": true,
+      "type": "score",
+      "elapsedMs": 295.363209000001,
+      "status": 200,
+      "requestBytes": 29981,
+      "responseBytes": 26160,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7739,
+        "output_tokens": 744,
+        "cost": 0.000325038
+      }
+    },
+    {
+      "size": 50,
+      "round": -1,
+      "warmup": true,
+      "type": "noul",
+      "elapsedMs": 284.4716329999992,
+      "status": 200,
+      "requestBytes": 18231,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4589,
+        "output_tokens": 894,
+        "cost": 0.000192738
+      }
+    },
+    {
+      "size": 50,
+      "round": 0,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 264.6054070000009,
+      "status": 200,
+      "requestBytes": 18246,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4591,
+        "output_tokens": 894,
+        "cost": 0.000192822
+      }
+    },
+    {
+      "size": 50,
+      "round": 0,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 294.6170110000003,
+      "status": 200,
+      "requestBytes": 29996,
+      "responseBytes": 26234,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7741,
+        "output_tokens": 744,
+        "cost": 0.000325122
+      }
+    },
+    {
+      "size": 50,
+      "round": 1,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 283.8676919999998,
+      "status": 200,
+      "requestBytes": 29976,
+      "responseBytes": 26261,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7738,
+        "output_tokens": 744,
+        "cost": 0.000324996
+      }
+    },
+    {
+      "size": 50,
+      "round": 1,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 1071.9026950000007,
+      "status": 200,
+      "requestBytes": 18226,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4588,
+        "output_tokens": 894,
+        "cost": 0.000192696
+      }
+    },
+    {
+      "size": 50,
+      "round": 2,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 253.22417399999904,
+      "status": 200,
+      "requestBytes": 18229,
+      "responseBytes": 1873,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4591,
+        "output_tokens": 894,
+        "cost": 0.000192822
+      }
+    },
+    {
+      "size": 50,
+      "round": 2,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 301.86237099999926,
+      "status": 200,
+      "requestBytes": 29979,
+      "responseBytes": 26407,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7741,
+        "output_tokens": 744,
+        "cost": 0.000325122
+      }
+    },
+    {
+      "size": 50,
+      "round": 3,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 285.8295870000002,
+      "status": 200,
+      "requestBytes": 29975,
+      "responseBytes": 25908,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7740,
+        "output_tokens": 744,
+        "cost": 0.00032508
+      }
+    },
+    {
+      "size": 50,
+      "round": 3,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 327.79742799999985,
+      "status": 200,
+      "requestBytes": 18225,
+      "responseBytes": 1877,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4590,
+        "output_tokens": 894,
+        "cost": 0.00019278
+      }
+    },
+    {
+      "size": 50,
+      "round": 4,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 286.87828700000136,
+      "status": 200,
+      "requestBytes": 18242,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4593,
+        "output_tokens": 894,
+        "cost": 0.000192906
+      }
+    },
+    {
+      "size": 50,
+      "round": 4,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 489.0269290000015,
+      "status": 200,
+      "requestBytes": 29992,
+      "responseBytes": 26123,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7743,
+        "output_tokens": 744,
+        "cost": 0.000325206
+      }
+    },
+    {
+      "size": 50,
+      "round": 5,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 350.9207889999998,
+      "status": 200,
+      "requestBytes": 29981,
+      "responseBytes": 26178,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7739,
+        "output_tokens": 744,
+        "cost": 0.000325038
+      }
+    },
+    {
+      "size": 50,
+      "round": 5,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 278.57693199999994,
+      "status": 200,
+      "requestBytes": 18231,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4589,
+        "output_tokens": 894,
+        "cost": 0.000192738
+      }
+    },
+    {
+      "size": 50,
+      "round": 6,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 245.3977990000003,
+      "status": 200,
+      "requestBytes": 18246,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4591,
+        "output_tokens": 894,
+        "cost": 0.000192822
+      }
+    },
+    {
+      "size": 50,
+      "round": 6,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 271.506354000001,
+      "status": 200,
+      "requestBytes": 29996,
+      "responseBytes": 26245,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7741,
+        "output_tokens": 744,
+        "cost": 0.000325122
+      }
+    },
+    {
+      "size": 50,
+      "round": 7,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 331.7689109999992,
+      "status": 200,
+      "requestBytes": 29976,
+      "responseBytes": 26220,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7738,
+        "output_tokens": 744,
+        "cost": 0.000324996
+      }
+    },
+    {
+      "size": 50,
+      "round": 7,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 242.18175299999893,
+      "status": 200,
+      "requestBytes": 18226,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4588,
+        "output_tokens": 894,
+        "cost": 0.000192696
+      }
+    },
+    {
+      "size": 50,
+      "round": 8,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 241.37115900000026,
+      "status": 200,
+      "requestBytes": 18230,
+      "responseBytes": 1873,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4592,
+        "output_tokens": 894,
+        "cost": 0.000192864
+      }
+    },
+    {
+      "size": 50,
+      "round": 8,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 282.4558840000009,
+      "status": 200,
+      "requestBytes": 29980,
+      "responseBytes": 26355,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7742,
+        "output_tokens": 744,
+        "cost": 0.000325164
+      }
+    },
+    {
+      "size": 50,
+      "round": 9,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 335.86751000000004,
+      "status": 200,
+      "requestBytes": 29976,
+      "responseBytes": 25935,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7741,
+        "output_tokens": 744,
+        "cost": 0.000325122
+      }
+    },
+    {
+      "size": 50,
+      "round": 9,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 274.6114630000011,
+      "status": 200,
+      "requestBytes": 18226,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4591,
+        "output_tokens": 894,
+        "cost": 0.000192822
+      }
+    },
+    {
+      "size": 50,
+      "round": 10,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 289.1313600000012,
+      "status": 200,
+      "requestBytes": 18243,
+      "responseBytes": 1878,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4594,
+        "output_tokens": 894,
+        "cost": 0.000192948
+      }
+    },
+    {
+      "size": 50,
+      "round": 10,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 297.5926760000002,
+      "status": 200,
+      "requestBytes": 29993,
+      "responseBytes": 26117,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7744,
+        "output_tokens": 744,
+        "cost": 0.000325248
+      }
+    },
+    {
+      "size": 50,
+      "round": 11,
+      "warmup": false,
+      "type": "score",
+      "elapsedMs": 321.9034279999996,
+      "status": 200,
+      "requestBytes": 29982,
+      "responseBytes": 26219,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 7740,
+        "output_tokens": 744,
+        "cost": 0.00032508
+      }
+    },
+    {
+      "size": 50,
+      "round": 11,
+      "warmup": false,
+      "type": "noul",
+      "elapsedMs": 270.9674300000006,
+      "status": 200,
+      "requestBytes": 18232,
+      "responseBytes": 1877,
+      "servedModel": "typesafe/jev-1.13-20260917",
+      "usage": {
+        "input_tokens": 4590,
+        "output_tokens": 894,
+        "cost": 0.00019278
+      }
+    }
+  ],
+  "summary": [
+    {
+      "size": 6,
+      "noul": {
+        "n": 12,
+        "meanMs": 237.32170125000007,
+        "medianMs": 230.929983,
+        "p95Ms": 265.503432,
+        "minMs": 206.63536300000032,
+        "maxMs": 265.503432
+      },
+      "score": {
+        "n": 12,
+        "meanMs": 264.7166661666667,
+        "medianMs": 261.4207720000004,
+        "p95Ms": 312.63644799999975,
+        "minMs": 225.31202299999995,
+        "maxMs": 312.63644799999975
+      },
+      "scoreToNoulMeanRatio": 1.1154338805611719,
+      "pairedMeanDeltaMs": 27.394964916666595,
+      "pairedMedianDeltaMs": 22.588346999999885
+    },
+    {
+      "size": 50,
+      "noul": {
+        "n": 12,
+        "meanMs": 337.2204905833337,
+        "medianMs": 270.9674300000006,
+        "p95Ms": 1071.9026950000007,
+        "minMs": 241.37115900000026,
+        "maxMs": 1071.9026950000007
+      },
+      "score": {
+        "n": 12,
+        "meanMs": 320.6015951666668,
+        "medianMs": 297.5926760000002,
+        "p95Ms": 489.0269290000015,
+        "minMs": 271.506354000001,
+        "maxMs": 489.0269290000015
+      },
+      "scoreToNoulMeanRatio": 0.9507180142347844,
+      "pairedMeanDeltaMs": -16.618895416666874,
+      "pairedMedianDeltaMs": 41.08472500000062
+    }
+  ],
+  "finishedAt": "2026-09-28T20:23:17.081Z"
+}

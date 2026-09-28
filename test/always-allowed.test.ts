@@ -86,7 +86,7 @@ test("relevance scores are cached across tab switches and Ctrl+R refreshes them"
     let calls = 0;
     globalThis.fetch = (async () => {
       calls++;
-      return new Response(JSON.stringify({ answers: { s0: { noul: 0.9 }, s1: { noul: 0.1 } } }), { status: 200 });
+      return new Response(JSON.stringify({ answers: { s0: { type: "score", score: 3.6 }, s1: { type: "score", score: 0.4 } } }), { status: 200 });
     }) as typeof fetch;
     let component: { handleInput(data: string): void; render(width: number): string[] };
     let finish!: (saved: boolean) => void;
@@ -261,8 +261,8 @@ test("relevance search ranks all skills for the query only when refreshed, witho
       const body = JSON.parse(init!.body as string);
       requests.push(body);
       return new Response(JSON.stringify({ answers: {
-        s0: { noul: body.state.task === "database migrations" ? 0.1 : 0.9 },
-        s1: { noul: body.state.task === "database migrations" ? 0.9 : 0.1 },
+        s0: { type: "score", score: body.state.task === "database migrations" ? 0.4 : 3.6 },
+        s1: { type: "score", score: body.state.task === "database migrations" ? 3.6 : 0.4 },
       } }), { status: 200 });
     }) as typeof fetch;
     let component!: { handleInput(data: string): void; render(width: number): string[] };
@@ -290,8 +290,9 @@ test("relevance search ranks all skills for the query only when refreshed, witho
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(requests.length, 1);
     assert.equal(requests[0].state.task, "database migrations");
-    assert.match(requests[0].questions.s0.instructions, /required to work on the topics in the search query/);
-    assert.match(requests[0].questions.s0.criteria.true, /Required to work on the topics/);
+    assert.match(requests[0].questions.s0.instructions, /useful is this skill for work on the topics in the search query/);
+    assert.equal(requests[0].questions.s0.type, "score");
+    assert.match(requests[0].questions.s0.criteria[4], /required to work on the topics/);
     rendered = component.render(100).join("\n");
     assert.match(rendered, /\[ \] beta · \? chars · 0\.90[\s\S]*\[ \] alpha · \? chars · 0\.10/);
     component.handleInput("!");
@@ -312,7 +313,7 @@ test("Jev failures appear inside the overlay and Ctrl+R can retry", async () => 
     globalThis.fetch = (async () => {
       requests++;
       return requests === 1 ? new Response("unavailable", { status: 503 })
-        : new Response(JSON.stringify({ answers: { s0: { noul: 0.9 } } }), { status: 200 });
+        : new Response(JSON.stringify({ answers: { s0: { type: "score", score: 3.6 } } }), { status: 200 });
     }) as typeof fetch;
     let component!: { handleInput(data: string): void; render(width: number): string[] };
     const ctx = { cwd: dir, modelRegistry: { getApiKeyForProvider: async () => "test" }, sessionManager: {},
@@ -343,10 +344,10 @@ test("global importance requests score all candidates independently of task rele
     apiKey: "test", threshold: 0, maxNew: candidates.length, globalImportance: true,
     fetcher: async (_url, init) => {
       const body = JSON.parse(init!.body as string);
-      assert.match(body.questions.s0.instructions, /broadly important/);
+      assert.match(body.questions.s0.instructions, /broadly useful/);
       assert.doesNotMatch(body.questions.s0.instructions, /current task/);
-      return new Response(JSON.stringify({ answers: { s0: { noul: 0.2 }, s1: { noul: 0.9 } } }), { status: 200 });
+      return new Response(JSON.stringify({ answers: { s0: { type: "score", score: 0.8 }, s1: { type: "score", score: 3.6 } } }), { status: 200 });
     },
   });
-  assert.deepEqual(ranked.map(({ skill, probability }) => [skill.name, probability]), [["two", 0.9], ["one", 0.2]]);
+  assert.deepEqual(ranked.map(({ skill, score }) => [skill.name, score]), [["two", 0.9], ["one", 0.2]]);
 });

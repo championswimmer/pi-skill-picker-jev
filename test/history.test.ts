@@ -52,7 +52,7 @@ test("/skill-picker history shows per-turn additions and restores the active bra
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => {
         const name = q.instructions.match(/Name: (\w+)/)?.[1];
-        return [id, { noul: body.state.task.toLowerCase().includes(name) ? 0.99 : 0.01 }];
+        return [id, { type: "score", score: body.state.task.toLowerCase().includes(name) ? 3.96 : 0.04 }];
       }));
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;

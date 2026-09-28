@@ -1,8 +1,10 @@
 import type { Skill } from "@earendil-works/pi-coding-agent";
+import { DEFAULT_SETTINGS, parseApiBaseUrl } from "./settings.ts";
 
 export interface RankedSkill {
   skill: Skill;
-  probability: number;
+  /** TypeSafe's expected rubric level normalized to [0,1], not a probability. */
+  score: number;
 }
 
 export interface DecisionCallUsage {
@@ -14,6 +16,7 @@ export interface DecisionCallUsage {
 
 export interface DecisionOptions {
   apiKey: string;
+  apiBaseUrl?: string;
   model?: string;
   threshold?: number;
   batchSize?: number;
@@ -29,14 +32,42 @@ export interface DecisionOptions {
   onUsage?: (usage: DecisionCallUsage) => void;
 }
 
+// Concrete, independently understandable levels per TypeSafe's Score guidance.
+// Each rubric measures one dimension; array position is the level number.
+const TASK_LEVELS = [
+  "Unrelated to the task; this skill would not help with any part of it.",
+  "Shares the general topic but provides no actionable help for the requested work.",
+  "Could provide optional supporting help, but is not directly needed to perform the task.",
+  "Directly useful for performing a concrete part of the requested task.",
+  "Essential to the central work explicitly requested in the task.",
+];
+const TOPIC_LEVELS = [
+  "Unrelated to the topics in the search query; provides no help working on them.",
+  "Mentions an adjacent topic but offers no actionable help for the queried topics.",
+  "Offers optional background or supporting techniques for the queried topics.",
+  "Provides techniques directly useful for a concrete part of work on the queried topics.",
+  "Provides core techniques required to work on the topics in the search query.",
+];
+const IMPORTANCE_LEVELS = [
+  "Has no practical use in project work.",
+  "Useful only in rare, narrowly specialized project tasks.",
+  "Useful in recurring tasks within one specialized area of a project.",
+  "Useful in several common kinds of tasks across a project.",
+  "Foundational guidance useful in most everyday tasks across a project.",
+];
+
 /** Rank every unsent candidate in batches. Never fail open by displaying all skills. */
 export async function rankSkills(
   task: string, candidates: Skill[], alreadySent: Skill[], options: DecisionOptions,
 ): Promise<RankedSkill[]> {
-  if (!options.apiKey || !candidates.length || !task.trim()) return [];
+  if ((!options.apiKey && !options.apiBaseUrl) || !candidates.length || !task.trim()) return [];
+  const base = options.apiBaseUrl === undefined ? undefined : parseApiBaseUrl(options.apiBaseUrl);
+  if (options.apiBaseUrl !== undefined && !base) throw new Error("Invalid TypeSafe API base URL");
+  const endpoint = base ? `${base.replace(/\/v1$/, "")}/v1/systemone` : "https://openrouter.ai/api/alpha/decisions";
+  const model = options.model ?? (base ? "jev-latest" : "typesafe/jev-1.13");
   const fetcher = options.fetcher ?? fetch;
   const batchSize = Math.max(1, Math.min(60, options.batchSize ?? 50));
-  const threshold = options.threshold ?? 0.75;
+  const threshold = options.threshold ?? DEFAULT_SETTINGS.threshold;
   const batchCount = Math.ceil(candidates.length / batchSize);
   const results: RankedSkill[][] = Array.from({ length: batchCount }, () => []);
   let nextBatch = 0;
@@ -57,50 +88,53 @@ export async function rankSkills(
   async function rankBatch(index: number): Promise<RankedSkill[]> {
     const batch = candidates.slice(index * batchSize, (index + 1) * batchSize);
     const questions = Object.fromEntries(batch.map((skill, i) => [
-      `s${i}`, { type: "noul", instructions: options.globalImportance
-        ? `Would this skill be broadly important to keep available across tasks in a project? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
+      `s${i}`, { type: "score", instructions: options.globalImportance
+        ? `How broadly useful is this skill across tasks in a project? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
         : options.topicSearch
-          ? `Is this skill required to work on the topics in the search query (state.task)? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
-          : `Would this skill be directly useful for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
-        criteria: options.globalImportance
-          ? { true: "Broadly useful across many tasks; important to keep available globally.", false: "Specialized or rarely useful; not important globally." }
-          : options.topicSearch
-            ? { true: "Required to work on the topics in the search query.", false: "Not required for those topics." }
-            : { true: "Directly useful for this task; include its description in the agent context.", false: "Not needed now; omit it from the agent context." } },
+          ? `How useful is this skill for work on the topics in the search query (state.task)? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`
+          : `How useful would this skill be for the current task? Name: ${skill.name}. Description: ${skill.description.slice(0, 1200)}`,
+        criteria: options.globalImportance ? IMPORTANCE_LEVELS : options.topicSearch ? TOPIC_LEVELS : TASK_LEVELS },
     ]));
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
     try {
-      const response = await fetcher("https://openrouter.ai/api/alpha/decisions", {
+      const response = await fetcher(endpoint, {
+        // Do not forward credentials or private task text through server redirects.
+        redirect: "error",
         method: "POST", signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
-        headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: options.model ?? "typesafe/jev-1.13", state: {
+        headers: { ...(options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {}), "Content-Type": "application/json" },
+        body: JSON.stringify({ model, state: {
           task: task.slice(-12_000), already_available: alreadySent.map((s) => `${s.name}: ${s.description}`).join("\n").slice(0, 3000),
         }, questions }),
       });
-      if (!response.ok) throw new Error(`OpenRouter returned ${response.status}`);
-      const data = await response.json() as { model?: string; usage?: { input_tokens?: number; output_tokens?: number; cost?: number }; answers?: Record<string, { noul?: number }> };
+      if (!response.ok) throw new Error(`${base ? "TypeSafe API" : "OpenRouter"} returned ${response.status}`);
+      const data = await response.json() as { model?: string; usage?: { input_tokens?: number; output_tokens?: number; cost?: number }; answers?: Record<string, { type?: string; score?: number } | null> };
       const usage = data.usage;
       if (usage && typeof usage.cost === "number" && Number.isFinite(usage.cost) && usage.cost >= 0) {
         const nonnegative = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : 0;
         try {
-          options.onUsage?.({ model: data.model || options.model || "typesafe/jev-1.13",
+          options.onUsage?.({ model: data.model || model,
             input: nonnegative(usage.input_tokens), output: nonnegative(usage.output_tokens), cost: usage.cost });
         } catch (error) {
           console.error("[pi-skill-picker-jev] Could not record Jev usage:", error);
         }
       }
       return batch.flatMap((skill, i) => {
-        const probability = data.answers?.[`s${i}`]?.noul;
-        return typeof probability === "number" && Number.isFinite(probability) && probability >= threshold && probability <= 1
-          ? [{ skill, probability }] : [];
+        const answer = data.answers?.[`s${i}`];
+        const raw = answer?.score;
+        const topLevel = questions[`s${i}`].criteria.length - 1;
+        // Do not reinterpret legacy Noul responses, clamp malformed ratings, or
+        // multiply by confidence (distribution concentration is not usefulness).
+        if (answer?.type !== "score" || typeof raw !== "number" || !Number.isFinite(raw) || raw < 0 || raw > topLevel) return [];
+        const score = raw / topLevel;
+        return score >= threshold ? [{ skill, score }] : [];
       });
     } finally { clearTimeout(timeout); }
   }
   await Promise.all(Array.from({ length: Math.min(6, batchCount) }, () => worker()));
   if (failed) throw failure;
   if (options.signal?.aborted) throw options.signal.reason;
-  return results.flat().sort((a, b) => b.probability - a.probability).slice(0, options.maxNew ?? 6);
+  return results.flat().sort((a, b) => b.score - a.score).slice(0, options.maxNew ?? 6);
 }
 
 export function transcriptText(messages: Array<{ role: string; content?: unknown }>, lastPrompt = ""): string {

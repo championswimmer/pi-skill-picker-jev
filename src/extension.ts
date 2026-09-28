@@ -4,7 +4,7 @@ import { decideSkills } from "./decision.ts";
 import { TriggerTracker } from "./triggers.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type SkillAddition } from "./history.ts";
 import { showTurnSkills } from "./history-ui.ts";
-import { TRIGGER_LABELS, TRIGGER_MODES, parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
+import { TRIGGER_LABELS, TRIGGER_MODES, parseApiBaseUrl, parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 import { readAllowlist } from "./always-allowed.ts";
 import { showAlwaysAllowed } from "./always-allowed-ui.ts";
 
@@ -59,8 +59,8 @@ export default function skillPicker(pi: ExtensionAPI) {
 
   const recordAddition = (ranked: RankedSkill[], step: number) => {
     if (!ranked.length) return;
-    const entry: SkillAddition = { turn: turnNumber, step, threshold: settings.threshold,
-      skills: ranked.map(({ skill, probability }) => ({ name: skill.name, score: probability })) };
+    const entry: SkillAddition = { turn: turnNumber, step, threshold: settings.threshold, scoreType: "score",
+      skills: ranked.map(({ skill, score }) => ({ name: skill.name, score })) };
     pi.appendEntry(ADDITION_ENTRY, entry);
     additions.push(entry);
     for (const skill of entry.skills) knownAdded.add(skill.name);
@@ -72,8 +72,39 @@ export default function skillPicker(pi: ExtensionAPI) {
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
         const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
-        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, allowedOption, "Done"]);
+        const baseOption = `TypeSafe API base URL: ${settings.apiBaseUrl ?? "OpenRouter (default)"}`;
+        const tokenOption = `API token: ${settings.apiToken ? "configured (hidden)" : settings.apiBaseUrl ? "none (custom server)" : "Pi OpenRouter authentication"}`;
+        const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
+        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
         if (!choice || choice === "Done") break;
+        if (choice === baseOption || choice === tokenOption || choice === modelOption) {
+          const key = choice === baseOption ? "apiBaseUrl" : choice === tokenOption ? "apiToken" : "model";
+          if (key === "apiToken") ctx.ui.notify("Token input is visible while typing; saved only in your agent settings (mode 0600).", "warning");
+          const value = await ctx.ui.input(
+            key === "apiBaseUrl" ? "TypeSafe server root URL (blank = OpenRouter)" :
+              key === "apiToken" ? "API token override (blank = clear; never prefilled)" : "Decision model (blank = default)",
+            key === "apiToken" ? undefined : settings[key],
+          );
+          if (value === undefined) continue;
+          const trimmed = value.trim();
+          if (key === "apiBaseUrl" && trimmed && !parseApiBaseUrl(trimmed)) {
+            ctx.ui.notify("Enter an HTTP(S) base URL without credentials, query, or fragment.", "warning");
+            continue;
+          }
+          const updated = { ...settings };
+          if (trimmed) updated[key] = key === "apiBaseUrl" ? parseApiBaseUrl(trimmed)! : trimmed;
+          else delete updated[key];
+          // A token belongs to the endpoint it was configured for.
+          if (key === "apiBaseUrl" && updated.apiBaseUrl !== settings.apiBaseUrl) delete updated.apiToken;
+          try {
+            writeSettings(updated);
+            settings = updated;
+            ctx.ui.notify(key === "apiBaseUrl" ? "Settings saved. Endpoint changes clear the token; configure it next if needed." : "Skill picker settings saved.", "info");
+          } catch (error) {
+            ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
+          }
+          continue;
+        }
         if (choice === allowedOption) {
           // Before the first turn, Pi's registered skill commands provide the
           // same names/descriptions; never scan files or invent new candidates.
@@ -104,7 +135,7 @@ export default function skillPicker(pi: ExtensionAPI) {
         const threshold = choice === thresholdOption;
         for (;;) {
           const value = await ctx.ui.input(
-            threshold ? "Relevance threshold (0–1)" : "Maximum new skills (0–100)",
+            threshold ? "Normalized usefulness rating cutoff (0–1; default 0.625)" : "Maximum new skills (0–100)",
             String(threshold ? settings.threshold : settings.maxNew),
           );
           if (value === undefined) break;

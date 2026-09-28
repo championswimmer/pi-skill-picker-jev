@@ -25,7 +25,7 @@ async function countDecisionCalls(triggerMode: TriggerMode): Promise<number> {
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => {
         const name = q.instructions.match(/Name: (\w+)/)?.[1];
-        return [id, { noul: body.state.task.toLowerCase().includes(name) ? 0.98 : 0.02 }];
+        return [id, { type: "score", score: body.state.task.toLowerCase().includes(name) ? 3.92 : 0.08 }];
       }));
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;

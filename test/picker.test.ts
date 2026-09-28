@@ -15,13 +15,13 @@ test("Jev batches Pi skills, selects only threshold matches and fails closed", a
   const fetcher = async (_url: unknown, init: RequestInit) => {
     const body = JSON.parse(init.body as string);
     requested.push(...Object.values(body.questions).map((q: any) => q.instructions));
-    const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { noul: q.instructions.includes("review") ? 0.93 : 0.12 }]));
+    const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { type: "score", score: q.instructions.includes("review") ? 3.72 : 0.48 }]));
     return new Response(JSON.stringify({ model: "typesafe/jev-1.13-20260917", usage: {
       input_tokens: 100, output_tokens: 5, cost: 0.00003 }, answers }), { status: 200 });
   };
   const ranked = await rankSkills("Review my PR", [skill("review"), skill("docker"), skill("deploy")], [],
     { apiKey: "test", batchSize: 2, fetcher: fetcher as typeof fetch, onUsage: (usage) => usageCalls.push(usage) });
-  assert.deepEqual(ranked.map(({ skill, probability }) => [skill.name, probability]), [["review", 0.93]]);
+  assert.deepEqual(ranked.map(({ skill, score }) => [skill.name, score]), [["review", 0.93]]);
   assert.equal(requested.length, 3);
   assert.deepEqual(usageCalls, [
     { model: "typesafe/jev-1.13-20260917", input: 100, output: 5, cost: 0.00003 },
@@ -62,7 +62,7 @@ test("Jev batches run concurrently with a limit of six and preserve ranking orde
     const body = JSON.parse(init.body as string);
     await new Promise<void>((resolve) => releases.push(resolve));
     active--;
-    return new Response(JSON.stringify({ answers: { s0: { noul: 0.9 } } }), { status: 200 });
+    return new Response(JSON.stringify({ answers: { s0: { type: "score", score: 3.6 } } }), { status: 200 });
   };
   const ranking = rankSkills("task", Array.from({ length: 8 }, (_, i) => skill(`skill${i}`)), [],
     { apiKey: "test", batchSize: 1, maxNew: 8, fetcher: fetcher as typeof fetch });
@@ -94,7 +94,7 @@ test("a failed batch waits for in-flight batches and does not start more or retu
     if (index === 0) return new Response("unavailable", { status: 503 });
     await new Promise<void>((resolve) => { releases.push(resolve); });
     completed++;
-    return new Response(JSON.stringify({ answers: { s0: { noul: 0.99 } } }));
+    return new Response(JSON.stringify({ answers: { s0: { type: "score", score: 3.96 } } }));
   };
   const ranking = rankSkills("task", Array.from({ length: 8 }, (_, i) => skill(`skill${i}`)), [],
     { apiKey: "test", batchSize: 1, fetcher: fetcher as typeof fetch });
@@ -132,7 +132,7 @@ test("filters only Pi's loaded skills and adds newly relevant Pi skills", async 
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => {
         const name = q.instructions.match(/Name: (\w+)/)?.[1];
-        return [id, { noul: name === "external" || body.state.task.toLowerCase().includes(name) ? 0.97 : 0.02 }];
+        return [id, { type: "score", score: name === "external" || body.state.task.toLowerCase().includes(name) ? 3.88 : 0.08 }];
       }));
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;

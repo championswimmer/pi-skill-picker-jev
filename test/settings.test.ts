@@ -52,7 +52,7 @@ test("TUI settings command saves values and ranking uses them without env vars",
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler),
       registerCommand: (name: string, command: { handler: Function }) => commands.set(name, command),
       appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
-    const choices = ["Threshold: 0.75", "Max new skills: 6", "When to pick: Prompt + tool results", "Prompt only", "Done"];
+    const choices = ["Threshold: 0.625", "Max new skills: 6", "When to pick: Prompt + tool results", "Prompt only", "Done"];
     const inputs = ["bad", "0.9", "1"];
     const notifications: string[] = [];
     const ctx = { hasUI: true, isIdle: () => true, sessionManager: { getBranch: () => branch }, ui: {
@@ -67,7 +67,7 @@ test("TUI settings command saves values and ranking uses them without env vars",
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       decisionCalls++;
       const body = JSON.parse(init.body as string);
-      const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { noul: q.instructions.includes("review") ? 0.96 : 0.85 }]));
+      const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { type: "score", score: q.instructions.includes("review") ? 3.84 : 3.4 }]));
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;
     const event = { prompt: "Use relevant skills", systemPromptOptions: { skills: [skill("review"), skill("deploy")] } };

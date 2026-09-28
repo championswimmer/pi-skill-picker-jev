@@ -1,5 +1,6 @@
 import type { ExtensionAPI, Skill } from "@earendil-works/pi-coding-agent";
 import { rankSkills, transcriptText } from "./picker.ts";
+import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -21,8 +22,45 @@ export default function skillPicker(pi: ExtensionAPI) {
   let skipFirstRequest = false;
   let lastPrompt = "";
   let lastContext = "";
+  let settings = readSettings();
+
+  pi.registerCommand("skill-picker-settings", {
+    description: "Set Jev skill relevance threshold and maximum new skills",
+    handler: async (_args, ctx) => {
+      if (!ctx.hasUI) return;
+      for (;;) {
+        const thresholdOption = `Threshold: ${settings.threshold}`;
+        const maxNewOption = `Max new skills: ${settings.maxNew}`;
+        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, "Done"]);
+        if (!choice || choice === "Done") break;
+        const threshold = choice === thresholdOption;
+        for (;;) {
+          const value = await ctx.ui.input(
+            threshold ? "Relevance threshold (0–1)" : "Maximum new skills (0–100)",
+            String(threshold ? settings.threshold : settings.maxNew),
+          );
+          if (value === undefined) break;
+          const parsed = threshold ? parseThreshold(value) : parseMaxNew(value);
+          if (parsed === undefined) {
+            ctx.ui.notify(threshold ? "Enter a number between 0 and 1." : "Enter a whole number from 0 to 100.", "warning");
+            continue;
+          }
+          const updated = { ...settings, [threshold ? "threshold" : "maxNew"]: parsed };
+          try {
+            writeSettings(updated);
+            settings = updated;
+            ctx.ui.notify("Skill picker settings saved.", "info");
+          } catch (error) {
+            ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
+          }
+          break;
+        }
+      }
+    },
+  });
 
   pi.on("session_start", async () => {
+    settings = readSettings();
     selected.clear();
     inventory = [];
     lastPrompt = "";
@@ -51,8 +89,8 @@ export default function skillPicker(pi: ExtensionAPI) {
         const newlySelected = await rankSkills(lastPrompt, pending, [...selected.values()], {
           apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
-          threshold: Number(process.env.PI_SKILL_PICKER_THRESHOLD ?? 0.75),
-          maxNew: Number(process.env.PI_SKILL_PICKER_MAX_NEW ?? 6),
+          threshold: settings.threshold,
+          maxNew: settings.maxNew,
         });
         for (const skill of newlySelected) selected.set(skill.name, skill);
       } catch (error) {
@@ -77,8 +115,8 @@ export default function skillPicker(pi: ExtensionAPI) {
         const newlySelected = await rankSkills(context, pending, [...selected.values()], {
           apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
-          threshold: Number(process.env.PI_SKILL_PICKER_THRESHOLD ?? 0.75),
-          maxNew: Number(process.env.PI_SKILL_PICKER_MAX_NEW ?? 6),
+          threshold: settings.threshold,
+          maxNew: settings.maxNew,
         });
         for (const skill of newlySelected) selected.set(skill.name, skill);
       } catch (error) {

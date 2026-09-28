@@ -29,12 +29,16 @@ The extension **does not scan for skills** or accept a skill-root setting. Its o
 
 ## Configuration
 
-| Environment variable | Default | Purpose |
-| --- | --- | --- |
-| OpenRouter credentials in Pi | — | Resolved via `ctx.modelRegistry.getApiKeyForProvider("openrouter")`. Configure through Pi auth, `models.json`, or `OPENROUTER_API_KEY`; without credentials, skills stay hidden (fail closed). |
-| `PI_SKILL_PICKER_MODEL` | `typesafe/jev-1.13` | OpenRouter Decisions model. |
-| `PI_SKILL_PICKER_THRESHOLD` | `0.75` | Minimum Jev probability to include a skill. |
-| `PI_SKILL_PICKER_MAX_NEW` | `6` | Maximum newly added skills per ranking pass. |
+Run **`/skill-picker-settings`** in Pi to open a TUI menu. Choose a setting, enter a new value, and select **Done** when finished:
+
+| TUI setting | Default | Range | Purpose |
+| --- | --- | --- | --- |
+| Threshold | `0.75` | 0–1 | Minimum Jev probability to include a skill. |
+| Max new skills | `6` | 0–100 (whole number) | Maximum newly added skills per ranking pass. |
+
+Changes take effect immediately and persist across Pi sessions in `~/.pi/agent/pi-skill-picker-jev.json` (or the configured Pi agent directory). The old `PI_SKILL_PICKER_THRESHOLD` and `PI_SKILL_PICKER_MAX_NEW` environment variables are no longer used.
+
+OpenRouter credentials are resolved through Pi's provider authentication (`ctx.modelRegistry.getApiKeyForProvider("openrouter")`). Configure them through Pi auth, `models.json`, or `OPENROUTER_API_KEY`; without credentials, skills stay hidden (fail closed). The optional `PI_SKILL_PICKER_MODEL` variable still selects the OpenRouter Decisions model (default: `typesafe/jev-1.13`).
 
 Pi's `pi-ai` model calls use chat/stream APIs, not Jev's dedicated Decisions endpoint. The extension therefore still sends HTTP requests to the [Decisions API](https://openrouter.ai/docs/api/reference/decisions), but obtains the OpenRouter key from **Pi's own provider authentication** rather than reading it from `process.env`. Ranking uses only Pi's loaded skill metadata and runs in batches of 40. This means a very large catalog makes each model request slower and incurs API costs. If a decision request fails, the existing selection is retained and **the full catalog is never exposed**. Selection is in-memory per Pi session; starting/reloading a session starts over. Manual `/skill:name` invocation remains Pi's responsibility; it still works for skills Pi discovered.
 
@@ -45,4 +49,4 @@ npm run typecheck
 npm test
 ```
 
-The tests cover using only Pi's skill list, Jev response gating, fail-closed behavior, and initial/incremental prompt-section selection. Requires Node 22+ for the test runner and native TypeScript stripping.
+The tests cover using only Pi's skill list, Jev response gating, fail-closed behavior, initial/incremental prompt-section selection, and TUI settings validation/persistence. Requires Node 22+ for the test runner and native TypeScript stripping.

@@ -39,7 +39,7 @@ test("filters only Pi's loaded skills and adds newly relevant Pi skills", async 
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;
     const handlers = new Map<string, Function>();
-    skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler) } as any);
+    skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {} } as any);
     await handlers.get("session_start")!();
     let authCalls = 0;
     const ctx = { cwd: "/tmp", modelRegistry: { getApiKeyForProvider: async (provider: string) => {

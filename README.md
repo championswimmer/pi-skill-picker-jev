@@ -7,10 +7,10 @@ At the start of each user turn, Pi's full skill catalog is replaced with only th
 ## Setup
 
 ```bash
-# Requires Pi 0.87.1+ and an OpenRouter API key with access to typesafe/jev-1.13.
+# Requires Pi 0.87.1+ and OpenRouter credentials in Pi (or OPENROUTER_API_KEY).
 cd ~/Development/championswimmer/pi-skill-picker-jev
 npm install
-export OPENROUTER_API_KEY=your_key
+pi auth check --provider openrouter
 export PI_SKILL_PICKER_ROOT=~/Development/railwayapp/mono
 pi install .
 ```
@@ -29,13 +29,13 @@ The extension recursively finds `SKILL.md` files under `PI_SKILL_PICKER_ROOT`, i
 
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
-| `OPENROUTER_API_KEY` | — | Required for ranking; without it, skills stay hidden (fail closed). |
+| OpenRouter credentials in Pi | — | Resolved via `ctx.modelRegistry.getApiKeyForProvider("openrouter")`. Configure through Pi auth, `models.json`, or `OPENROUTER_API_KEY`; without credentials, skills stay hidden (fail closed). |
 | `PI_SKILL_PICKER_ROOT` | `./mono` if it exists, else `.` | Root of the skill monorepo. |
 | `PI_SKILL_PICKER_MODEL` | `typesafe/jev-1.13` | OpenRouter Decisions model. |
 | `PI_SKILL_PICKER_THRESHOLD` | `0.75` | Minimum Jev probability to include a skill. |
 | `PI_SKILL_PICKER_MAX_NEW` | `6` | Maximum newly added skills per ranking pass. |
 
-Ranking uses the [Decisions API](https://openrouter.ai/docs/api/reference/decisions) in batches of 40. This means a very large catalog makes each model request slower and incurs API costs. If a decision request fails, the existing selection is retained and **the full catalog is never exposed**. Selection is in-memory per Pi session; starting/reloading a session starts over. Manual `/skill:name` invocation remains Pi's responsibility (only skills Pi discovered natively can be invoked this way); use `read` for selected skills from an external monorepo.
+Pi's `pi-ai` model calls use chat/stream APIs, not Jev's dedicated Decisions endpoint. The extension therefore still sends HTTP requests to the [Decisions API](https://openrouter.ai/docs/api/reference/decisions), but obtains the OpenRouter key from **Pi's own provider authentication** rather than reading it from `process.env`. Ranking runs in batches of 40. This means a very large catalog makes each model request slower and incurs API costs. If a decision request fails, the existing selection is retained and **the full catalog is never exposed**. Selection is in-memory per Pi session; starting/reloading a session starts over. Manual `/skill:name` invocation remains Pi's responsibility (only skills Pi discovered natively can be invoked this way); use `read` for selected skills from an external monorepo.
 
 ## Development
 

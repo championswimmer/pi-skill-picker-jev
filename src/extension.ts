@@ -46,7 +46,7 @@ export default function skillPicker(pi: ExtensionAPI) {
     if (pending.length) {
       try {
         const newlySelected = await rankSkills(lastPrompt, pending, [...selected.values()], {
-          apiKey: process.env.OPENROUTER_API_KEY ?? "",
+          apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: Number(process.env.PI_SKILL_PICKER_THRESHOLD ?? 0.75),
           maxNew: Number(process.env.PI_SKILL_PICKER_MAX_NEW ?? 6),
@@ -61,7 +61,7 @@ export default function skillPicker(pi: ExtensionAPI) {
     lastContext = "";
   });
 
-  pi.on("context_with_system", async (event) => {
+  pi.on("context_with_system", async (event, ctx) => {
     if (skipFirstRequest) {
       skipFirstRequest = false;
       return;
@@ -72,7 +72,7 @@ export default function skillPicker(pi: ExtensionAPI) {
       lastContext = context;
       try {
         const newlySelected = await rankSkills(context, pending, [...selected.values()], {
-          apiKey: process.env.OPENROUTER_API_KEY ?? "",
+          apiKey: await ctx.modelRegistry.getApiKeyForProvider("openrouter") ?? "",
           model: process.env.PI_SKILL_PICKER_MODEL,
           threshold: Number(process.env.PI_SKILL_PICKER_THRESHOLD ?? 0.75),
           maxNew: Number(process.env.PI_SKILL_PICKER_MAX_NEW ?? 6),

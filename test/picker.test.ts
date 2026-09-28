@@ -49,7 +49,7 @@ test("ranks initial prompt then adds newly needed skills before the next model r
   const oldFetch = globalThis.fetch;
   try {
     process.env.PI_SKILL_PICKER_ROOT = root;
-    process.env.OPENROUTER_API_KEY = "test";
+    delete process.env.OPENROUTER_API_KEY; // Credential is provided by Pi, not read directly from the environment.
     for (const name of ["review", "deploy", "irrelevant"]) {
       mkdirSync(join(root, name));
       writeFileSync(join(root, name, "SKILL.md"), `---\nname: ${name}\ndescription: ${name} expertise\n---\n`);
@@ -65,14 +65,21 @@ test("ranks initial prompt then adds newly needed skills before the next model r
     const handlers = new Map<string, Function>();
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler) } as any);
     await handlers.get("session_start")!();
+    let authCalls = 0;
+    const ctx = { cwd: root, modelRegistry: { getApiKeyForProvider: async (provider: string) => {
+      assert.equal(provider, "openrouter");
+      authCalls++;
+      return "pi-stored-key";
+    } } };
     const event = { prompt: "Review this change", systemPromptOptions: { skills: [skill("legacy")] } };
-    await handlers.get("before_agent_start")!(event, { cwd: root });
+    await handlers.get("before_agent_start")!(event, ctx);
     assert.deepEqual(event.systemPromptOptions.skills.map((s) => s.name), ["review"]);
     const messages = [{ role: "system", content: "Pi", sections: { skills: "ALL SKILLS" } },
       { role: "user", content: [{ type: "text", text: "Review this change" }] }];
-    assert.equal(await handlers.get("context_with_system")!({ messages }), undefined);
+    assert.equal(await handlers.get("context_with_system")!({ messages }, ctx), undefined);
     const second = await handlers.get("context_with_system")!({ messages: [...messages,
-      { role: "assistant", content: [{ type: "text", text: "Now deploy the change" }] }] });
+      { role: "assistant", content: [{ type: "text", text: "Now deploy the change" }] }] }, ctx);
+    assert.equal(authCalls, 2);
     assert.deepEqual(second.messages.at(-1).role, "system");
     assert.match(second.messages.at(-1).sections.skills, /<name>deploy<\/name>/);
     assert.doesNotMatch(second.messages.at(-1).sections.skills, /irrelevant|legacy/);

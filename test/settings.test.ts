@@ -45,19 +45,21 @@ test("TUI settings command saves values and ranking uses them without env vars",
     process.env.PI_SKILL_PICKER_MAX_NEW = "100";
     const handlers = new Map<string, Function>();
     const commands = new Map<string, { handler: Function }>();
+    const branch: Array<{ type: string; customType: string; data: unknown }> = [];
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler),
-      registerCommand: (name: string, command: { handler: Function }) => commands.set(name, command) } as any);
+      registerCommand: (name: string, command: { handler: Function }) => commands.set(name, command),
+      appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
     const choices = ["Threshold: 0.75", "Max new skills: 6", "Done"];
     const inputs = ["bad", "0.9", "1"];
     const notifications: string[] = [];
-    const ctx = { hasUI: true, ui: {
+    const ctx = { hasUI: true, sessionManager: { getBranch: () => branch }, ui: {
       select: async (_title: string, options: string[]) => { const choice = choices.shift(); assert.ok(!choice || options.includes(choice)); return choice; },
       input: async () => inputs.shift(), notify: (message: string) => notifications.push(message),
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
-    await commands.get("skill-picker-settings")!.handler("", ctx);
+    await commands.get("skill-picker")!.handler("settings", ctx);
     assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { threshold: 0.9, maxNew: 1 });
     assert.match(notifications.join(" "), /number between 0 and 1/);
-    await handlers.get("session_start")!();
+    await handlers.get("session_start")!({}, ctx);
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => [id, { noul: q.instructions.includes("review") ? 0.96 : 0.85 }]));

@@ -1,5 +1,6 @@
-import type { ExtensionAPI, Skill } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
 import { rankSkills, transcriptText } from "./picker.ts";
+import { ADDITION_ENTRY, TURN_ENTRY, formatAddition, restoreHistory, type SkillAddition } from "./history.ts";
 import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
@@ -23,11 +24,33 @@ export default function skillPicker(pi: ExtensionAPI) {
   let lastPrompt = "";
   let lastContext = "";
   let settings = readSettings();
+  let additions: SkillAddition[] = [];
+  let knownAdded = new Set<string>();
+  let turnNumber = 0;
+  let requestNumber = 0;
 
-  pi.registerCommand("skill-picker-settings", {
-    description: "Set Jev skill relevance threshold and maximum new skills",
-    handler: async (_args, ctx) => {
-      if (!ctx.hasUI) return;
+  const restore = (ctx: ExtensionContext) => {
+    const restored = restoreHistory(ctx.sessionManager.getBranch());
+    additions = restored.additions;
+    knownAdded = restored.selectedNames;
+    turnNumber = restored.turn;
+    requestNumber = 0;
+    selected.clear();
+    inventory = [];
+    lastPrompt = "";
+    lastContext = "";
+    skipFirstRequest = false;
+  };
+
+  const recordAddition = (skills: Skill[], step: number) => {
+    if (!skills.length) return;
+    const entry = { turn: turnNumber, step, skills: skills.map((skill) => skill.name) };
+    pi.appendEntry(ADDITION_ENTRY, entry);
+    additions.push(entry);
+    for (const name of entry.skills) knownAdded.add(name);
+  };
+
+  const showSettings = async (ctx: ExtensionCommandContext) => {
       for (;;) {
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
@@ -56,20 +79,40 @@ export default function skillPicker(pi: ExtensionAPI) {
           break;
         }
       }
+  };
+
+  const showHistory = async (ctx: ExtensionCommandContext) => {
+    const rows = additions.length ? additions.map(formatAddition) : ["No skills added this session."];
+    await ctx.ui.select("Skill picker · additions this session", [...rows, "Close"]);
+  };
+
+  pi.registerCommand("skill-picker", {
+    description: "Skill picker settings and session history (/skill-picker settings|history)",
+    getArgumentCompletions: (prefix) => {
+      const matches = ["settings", "history"].filter((name) => name.startsWith(prefix));
+      return matches.length ? matches.map((value) => ({ value, label: value })) : null;
+    },
+    handler: async (args, ctx) => {
+      if (!ctx.hasUI) return;
+      let action = args.trim().toLowerCase();
+      if (!action) action = (await ctx.ui.select("Skill picker", ["settings", "history"])) ?? "";
+      if (action === "settings") await showSettings(ctx);
+      else if (action === "history") await showHistory(ctx);
+      else if (action) ctx.ui.notify("Use /skill-picker settings or /skill-picker history.", "warning");
     },
   });
 
-  pi.on("session_start", async () => {
+  pi.on("session_start", async (_event, ctx) => {
     settings = readSettings();
-    selected.clear();
-    inventory = [];
-    lastPrompt = "";
-    lastContext = "";
-    skipFirstRequest = false;
+    restore(ctx);
   });
+  pi.on("session_tree", async (_event, ctx) => restore(ctx));
 
   pi.on("before_agent_start", async (event, ctx) => {
     lastPrompt = event.prompt;
+    turnNumber++;
+    requestNumber = 1;
+    pi.appendEntry(TURN_ENTRY, { turn: turnNumber });
     // Intercept precisely the skills Pi loaded for this session/project.
     // No independent filesystem scanning or additional skill sources.
     const names = new Set<string>();
@@ -80,6 +123,9 @@ export default function skillPicker(pi: ExtensionAPI) {
     });
     for (const [name, skill] of selected) {
       if (!inventory.some((available) => available.name === name && available.filePath === skill.filePath)) selected.delete(name);
+    }
+    for (const skill of inventory) {
+      if (knownAdded.has(skill.name) && !selected.has(skill.name)) selected.set(skill.name, skill);
     }
     // Always remove Pi's original full skills list, including on API failure.
     event.systemPromptOptions.skills = [...selected.values()];
@@ -93,6 +139,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           maxNew: settings.maxNew,
         });
         for (const skill of newlySelected) selected.set(skill.name, skill);
+        recordAddition(newlySelected, 1);
       } catch (error) {
         console.error("[pi-skill-picker-jev] Initial ranking failed (skills hidden):", error);
       }
@@ -107,6 +154,7 @@ export default function skillPicker(pi: ExtensionAPI) {
       skipFirstRequest = false;
       return;
     }
+    requestNumber++;
     const context = transcriptText(event.messages, lastPrompt);
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (context && context !== lastContext && pending.length) {
@@ -119,6 +167,7 @@ export default function skillPicker(pi: ExtensionAPI) {
           maxNew: settings.maxNew,
         });
         for (const skill of newlySelected) selected.set(skill.name, skill);
+        recordAddition(newlySelected, requestNumber);
       } catch (error) {
         console.error("[pi-skill-picker-jev] Incremental ranking failed (keeping previous skills):", error);
       }

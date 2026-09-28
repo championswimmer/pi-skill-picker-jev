@@ -29,7 +29,7 @@ The extension **does not scan for skills** or accept a skill-root setting. Its o
 
 ## Configuration
 
-Run **`/skill-picker-settings`** in Pi to open a TUI menu. Choose a setting, enter a new value, and select **Done** when finished:
+Run **`/skill-picker settings`** in Pi to open a TUI menu. Choose a setting, enter a new value, and select **Done** when finished:
 
 | TUI setting | Default | Range | Purpose |
 | --- | --- | --- | --- |
@@ -37,6 +37,8 @@ Run **`/skill-picker-settings`** in Pi to open a TUI menu. Choose a setting, ent
 | Max new skills | `6` | 0–100 (whole number) | Maximum newly added skills per ranking pass. |
 
 Changes take effect immediately and persist across Pi sessions in `~/.pi/agent/pi-skill-picker-jev.json` (or the configured Pi agent directory). The old `PI_SKILL_PICKER_THRESHOLD` and `PI_SKILL_PICKER_MAX_NEW` environment variables are no longer used.
+
+Run **`/skill-picker history`** to see a scrollable TUI dialog of skills added in this session, grouped by user turn and whether they were added on the initial request or a follow-up model request. If nothing was added, the dialog says so. History is stored as non-context Pi session entries, survives a reload/resume, and follows the active branch when you fork or navigate the session tree. Run **`/skill-picker`** without a subcommand to choose between settings and history.
 
 OpenRouter credentials are resolved through Pi's provider authentication (`ctx.modelRegistry.getApiKeyForProvider("openrouter")`). Configure them through Pi auth, `models.json`, or `OPENROUTER_API_KEY`; without credentials, skills stay hidden (fail closed). The optional `PI_SKILL_PICKER_MODEL` variable still selects the OpenRouter Decisions model (default: `typesafe/jev-1.13`).
 
@@ -49,4 +51,4 @@ npm run typecheck
 npm test
 ```
 
-The tests cover using only Pi's skill list, Jev response gating, fail-closed behavior, initial/incremental prompt-section selection, and TUI settings validation/persistence. Requires Node 22+ for the test runner and native TypeScript stripping.
+The tests cover using only Pi's skill list, Jev response gating, fail-closed behavior, initial/incremental prompt-section selection, TUI settings persistence, and branch-aware session history. Requires Node 22+ for the test runner and native TypeScript stripping.

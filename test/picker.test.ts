@@ -39,14 +39,16 @@ test("filters only Pi's loaded skills and adds newly relevant Pi skills", async 
       return new Response(JSON.stringify({ answers }), { status: 200 });
     }) as typeof fetch;
     const handlers = new Map<string, Function>();
-    skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {} } as any);
-    await handlers.get("session_start")!();
+    const branch: Array<{ type: string; customType: string; data: unknown }> = [];
+    skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {},
+      appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
     let authCalls = 0;
-    const ctx = { cwd: "/tmp", modelRegistry: { getApiKeyForProvider: async (provider: string) => {
+    const ctx = { cwd: "/tmp", sessionManager: { getBranch: () => branch }, modelRegistry: { getApiKeyForProvider: async (provider: string) => {
       assert.equal(provider, "openrouter");
       authCalls++;
       return "pi-stored-key";
     } } };
+    await handlers.get("session_start")!({}, ctx);
     const disabled = { ...skill("manual"), disableModelInvocation: true };
     const event = { prompt: "Review this change", systemPromptOptions: { skills: [skill("review"), skill("deploy"), disabled, skill("review")] } };
     await handlers.get("before_agent_start")!(event, ctx);

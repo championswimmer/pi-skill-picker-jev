@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
-import { ADDITION_ENTRY, TURN_ENTRY, buildHistoryView, restoreHistory } from "../src/history.ts";
+import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory } from "../src/history.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -23,7 +23,8 @@ test("session branch history restores only valid turn and addition records", () 
   assert.equal(result.turn, 1);
   assert.deepEqual(result.additions, [{ turn: 1, step: 1, threshold: null, skills: [{ name: "review", score: null }] }]);
   assert.deepEqual([...result.selectedNames], ["review"]);
-  assert.deepEqual(buildHistoryView(result.additions).rows, ["Turn 1 · initial · review (score unavailable)"]);
+  assert.deepEqual(groupHistoryByTurn(result.additions), [{ turn: 1,
+    skills: [{ name: "review", score: null, threshold: null, step: 1 }] }]);
 });
 
 test("/skill-picker history shows per-turn additions and restores the active branch", async () => {
@@ -62,23 +63,19 @@ test("/skill-picker history shows per-turn additions and restores the active bra
     await handlers.get("context_with_system")!({ messages: [...messages, { role: "toolResult", content: [{ type: "text", text: "Now deploy" }] }] }, ctx);
     await handlers.get("before_agent_start")!({ prompt: "Run test suite", systemPromptOptions: { skills: [...skills] } }, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);
-    assert.deepEqual(dialogs.at(-1)?.rows, [
-      "Turn 1 · initial · review (score 0.990 ≥ 0.750)",
-      "Turn 1 · follow-up #2 · deploy (score 0.990 ≥ 0.750)",
-      "Turn 2 · initial · test (score 0.990 ≥ 0.750)",
-      "Close",
-    ]);
+    assert.deepEqual(dialogs.at(-1)?.rows, ["Turn 1 · 2 skills added (expand)", "Turn 2 · 1 skill added (expand)", "Close"]);
+    assert.doesNotMatch(JSON.stringify(branch), /expertise/); // descriptions are not session entries
     assert.equal(branch.filter((entry) => entry.customType === TURN_ENTRY).length, 2);
     assert.equal(branch.filter((entry) => entry.customType === ADDITION_ENTRY).length, 3);
     // A session reload must replay the same history; a fork must NOT display
     // additions from turns or branches outside its active ancestry.
     await handlers.get("session_start")!({ reason: "reload" }, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);
-    assert.equal(dialogs.at(-1)?.rows.length, 4);
+    assert.equal(dialogs.at(-1)?.rows.length, 3);
     branch = branch.slice(0, 2);
     await handlers.get("session_tree")!({ newLeafId: "fork", oldLeafId: "main" }, ctx);
     await commands.get("skill-picker")!.handler("history", ctx);
-    assert.deepEqual(dialogs.at(-1)?.rows, ["Turn 1 · initial · review (score 0.990 ≥ 0.750)", "Close"]);
+    assert.deepEqual(dialogs.at(-1)?.rows, ["Turn 1 · 1 skill added (expand)", "Close"]);
   } finally {
     globalThis.fetch = oldFetch;
     if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;

@@ -56,26 +56,28 @@ function skillRow(entry: SkillAddition, skill: ScoredSkill): string {
   return `Turn ${entry.turn} · ${phase} · ${skill.name} (${relevance})`;
 }
 
-/** The main dialog previews at most six skills PER user turn; overflow has a selectable drill-down. */
-export function buildHistoryView(additions: SkillAddition[]): {
-  rows: string[];
-  expansions: Map<string, { title: string; rows: string[] }>;
-} {
-  const byTurn = new Map<number, string[]>();
+export interface HistorySkill extends ScoredSkill {
+  step: number;
+  threshold: number | null;
+}
+
+export interface TurnHistory {
+  turn: number;
+  skills: HistorySkill[];
+}
+
+/** Group all decisions by user turn; descriptions remain outside the session log. */
+export function groupHistoryByTurn(additions: SkillAddition[]): TurnHistory[] {
+  const turns = new Map<number, HistorySkill[]>();
   for (const entry of additions) {
-    const rows = byTurn.get(entry.turn) ?? [];
-    rows.push(...entry.skills.map((skill) => skillRow(entry, skill)));
-    byTurn.set(entry.turn, rows);
+    const skills = turns.get(entry.turn) ?? [];
+    skills.push(...entry.skills.map((skill) => ({ ...skill, step: entry.step, threshold: entry.threshold })));
+    turns.set(entry.turn, skills);
   }
-  const rows: string[] = [];
-  const expansions = new Map<string, { title: string; rows: string[] }>();
-  for (const [turn, all] of byTurn) {
-    rows.push(...all.slice(0, 6));
-    if (all.length > 6) {
-      const expand = `Turn ${turn} · … ${all.length - 6} more skills (expand)`;
-      rows.push(expand);
-      expansions.set(expand, { title: `Turn ${turn} · all ${all.length} added skills`, rows: all });
-    }
-  }
-  return { rows, expansions };
+  return [...turns].map(([turn, skills]) => ({ turn, skills }));
+}
+
+export function formatHistorySkill(turn: number, skill: HistorySkill): string {
+  return skillRow({ turn, step: skill.step, threshold: skill.threshold, skills: [skill] }, skill)
+    .replace(`Turn ${turn} · `, "");
 }

@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Skill } from "@earendil-works/pi-coding-agent";
 import { rankSkills, transcriptText, type RankedSkill } from "./picker.ts";
-import { ADDITION_ENTRY, TURN_ENTRY, buildHistoryView, restoreHistory, type SkillAddition } from "./history.ts";
+import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type SkillAddition } from "./history.ts";
+import { showTurnSkills } from "./history-ui.ts";
 import { parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
 import { withPickerStatus } from "./status.ts";
 
@@ -84,16 +85,21 @@ export default function skillPicker(pi: ExtensionAPI) {
   };
 
   const showHistory = async (ctx: ExtensionCommandContext) => {
-    const view = buildHistoryView(additions);
-    if (!view.rows.length) {
+    const turns = groupHistoryByTurn(additions);
+    if (!turns.length) {
       await ctx.ui.select("Skill picker · additions this session", ["No skills added this session.", "Close"]);
       return;
     }
+    const options = turns.map(({ turn, skills }) => `Turn ${turn} · ${skills.length} skill${skills.length === 1 ? "" : "s"} added (expand)`);
     for (;;) {
-      const choice = await ctx.ui.select("Skill picker · additions this session", [...view.rows, "Close"]);
-      const detail = choice && view.expansions.get(choice);
-      if (!detail) break;
-      await ctx.ui.select(detail.title, [...detail.rows, "Back"]);
+      const choice = await ctx.ui.select("Skill picker · turns with additions", [...options, "Close"]);
+      const index = options.indexOf(choice ?? "");
+      if (index < 0) break;
+      // Descriptions come from Pi's *current* registered skill commands, not
+      // our session entries, and are looked up only when the dialog is opened.
+      const descriptions = new Map(pi.getCommands().filter((command) => command.source === "skill" && command.name.startsWith("skill:"))
+        .map((command) => [command.name.slice(6), command.description ?? ""]));
+      await showTurnSkills(ctx, turns[index], descriptions);
     }
   };
 

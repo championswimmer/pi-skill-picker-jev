@@ -26,13 +26,13 @@ test("settings validate values and persist across loads", () => {
     assert.equal(parseMaxNew("100"), 100);
     assert.equal(parseMaxNew("1.5"), undefined);
     assert.equal(parseMaxNew("101"), undefined);
-    writeSettings({ threshold: 0.91, maxNew: 2, triggerMode: "every-request" }, path);
-    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
-    assert.throws(() => writeSettings({ threshold: 2, maxNew: 1, triggerMode: "prompt-only" }, path), /Invalid/);
-    assert.throws(() => writeSettings({ threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any }, path), /Invalid/);
-    assert.deepEqual(readSettings(path), { threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
+    writeSettings({ enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" }, path);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
+    assert.throws(() => writeSettings({ enabled: true, threshold: 2, maxNew: 1, triggerMode: "prompt-only" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any }, path), /Invalid/);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
     writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3 })); // pre-mode config migrates
-    assert.deepEqual(readSettings(path), { threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools" });
+    assert.deepEqual(readSettings(path), { enabled: true, threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools" });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -60,7 +60,7 @@ test("TUI settings command saves values and ranking uses them without env vars",
       input: async () => inputs.shift(), notify: (message: string) => notifications.push(message), setWidget: () => {}, setWorkingMessage: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await commands.get("skill-picker")!.handler("settings", ctx);
-    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { threshold: 0.9, maxNew: 1, triggerMode: "prompt-only" });
+    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "prompt-only" });
     assert.match(notifications.join(" "), /number between 0 and 1/);
     await handlers.get("session_start")!({}, ctx);
     let decisionCalls = 0;

@@ -18,7 +18,7 @@ async function countDecisionCalls(triggerMode: TriggerMode): Promise<number> {
   const oldFetch = globalThis.fetch;
   try {
     process.env.PI_CODING_AGENT_DIR = dir;
-    writeSettings({ threshold: 0.75, maxNew: 6, triggerMode });
+    writeSettings({ enabled: true, threshold: 0.75, maxNew: 6, triggerMode });
     let calls = 0;
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       calls++;

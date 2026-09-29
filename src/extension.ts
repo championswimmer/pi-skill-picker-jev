@@ -68,6 +68,7 @@ export default function skillPicker(pi: ExtensionAPI) {
 
   const showSettings = async (ctx: ExtensionCommandContext) => {
       for (;;) {
+        const enabledOption = `Skill picker: ${settings.enabled ? "On" : "Off"}`;
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
@@ -75,8 +76,17 @@ export default function skillPicker(pi: ExtensionAPI) {
         const baseOption = `TypeSafe API base URL: ${settings.apiBaseUrl ?? "OpenRouter (default)"}`;
         const tokenOption = `API token: ${settings.apiToken ? "configured (hidden)" : settings.apiBaseUrl ? "none (custom server)" : "Pi OpenRouter authentication"}`;
         const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
-        const choice = await ctx.ui.select("Skill picker settings", [thresholdOption, maxNewOption, triggerOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
+        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, triggerOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
         if (!choice || choice === "Done") break;
+        if (choice === enabledOption) {
+          const updated = { ...settings, enabled: !settings.enabled };
+          try {
+            writeSettings(updated);
+            settings = updated;
+            ctx.ui.notify(`Skill picker ${settings.enabled ? "enabled" : "disabled"}.`, "info");
+          } catch (error) { ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error"); }
+          continue;
+        }
         if (choice === baseOption || choice === tokenOption || choice === modelOption) {
           const key = choice === baseOption ? "apiBaseUrl" : choice === tokenOption ? "apiToken" : "model";
           if (key === "apiToken") ctx.ui.notify("Token input is visible while typing; saved only in your agent settings (mode 0600).", "warning");
@@ -179,7 +189,7 @@ export default function skillPicker(pi: ExtensionAPI) {
   pi.registerCommand("skill-picker", {
     description: "Skill picker settings and session history (/skill-picker settings|history)",
     getArgumentCompletions: (prefix) => {
-      const matches = ["settings", "history"].filter((name) => name.startsWith(prefix));
+      const matches = ["on", "off", "settings", "history"].filter((name) => name.startsWith(prefix));
       return matches.length ? matches.map((value) => ({ value, label: value })) : null;
     },
     handler: async (args, ctx) => {
@@ -188,7 +198,15 @@ export default function skillPicker(pi: ExtensionAPI) {
       if (!action) action = (await ctx.ui.select("Skill picker", ["settings", "history"])) ?? "";
       if (action === "settings") await showSettings(ctx);
       else if (action === "history") await showHistory(ctx);
-      else if (action) ctx.ui.notify("Use /skill-picker settings or /skill-picker history.", "warning");
+      else if (action === "on" || action === "off") {
+        const updated = { ...settings, enabled: action === "on" };
+        try {
+          writeSettings(updated);
+          settings = updated;
+          ctx.ui.notify(`Skill picker ${settings.enabled ? "enabled" : "disabled"}.`, "info");
+        } catch (error) { ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error"); }
+      }
+      else if (action) ctx.ui.notify("Use /skill-picker on|off, settings, or history.", "warning");
     },
   });
 
@@ -199,7 +217,15 @@ export default function skillPicker(pi: ExtensionAPI) {
   pi.on("session_tree", async (_event, ctx) => restore(ctx));
 
   pi.on("before_agent_start", async (event, ctx) => {
+    settings = readSettings();
     lastPrompt = event.prompt;
+    if (!settings.enabled) {
+      inventory = [];
+      selected.clear();
+      skipFirstRequest = true;
+      triggers.reset();
+      return;
+    }
     turnNumber++;
     requestNumber = 1;
     pi.appendEntry(TURN_ENTRY, { turn: turnNumber });
@@ -236,6 +262,7 @@ export default function skillPicker(pi: ExtensionAPI) {
   });
 
   pi.on("context_with_system", async (event, ctx) => {
+    if (!settings.enabled) return;
     if (skipFirstRequest) {
       skipFirstRequest = false;
       triggers.snapshot(event.messages, lastPrompt);

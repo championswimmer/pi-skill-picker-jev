@@ -13,6 +13,7 @@ export const TRIGGER_LABELS: Record<TriggerMode, string> = {
 };
 
 export interface PickerSettings {
+  enabled: boolean;
   threshold: number;
   maxNew: number;
   triggerMode: TriggerMode;
@@ -23,7 +24,7 @@ export interface PickerSettings {
   model?: string;
 }
 
-export const DEFAULT_SETTINGS: PickerSettings = { threshold: 0.625, maxNew: 6, triggerMode: "prompt-and-tools" };
+export const DEFAULT_SETTINGS: PickerSettings = { enabled: true, threshold: 0.625, maxNew: 6, triggerMode: "prompt-and-tools" };
 
 export function isTriggerMode(value: unknown): value is TriggerMode {
   return TRIGGER_MODES.some((mode) => mode === value);
@@ -59,11 +60,12 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
   try {
     const data: unknown = JSON.parse(readFileSync(path, "utf8"));
     if (!data || typeof data !== "object") return { ...DEFAULT_SETTINGS };
-    const { threshold, maxNew, triggerMode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
+    const { enabled, threshold, maxNew, triggerMode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
     // Keep invalid endpoints: request validation must fail closed, not
     // silently send a custom server's token/task to OpenRouter.
     const optional = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
     return {
+      enabled: typeof enabled === "boolean" ? enabled : DEFAULT_SETTINGS.enabled,
       threshold: typeof threshold === "number" ? parseThreshold(String(threshold)) ?? DEFAULT_SETTINGS.threshold : DEFAULT_SETTINGS.threshold,
       maxNew: typeof maxNew === "number" ? parseMaxNew(String(maxNew)) ?? DEFAULT_SETTINGS.maxNew : DEFAULT_SETTINGS.maxNew,
       triggerMode: isTriggerMode(triggerMode) ? triggerMode : DEFAULT_SETTINGS.triggerMode,
@@ -75,7 +77,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
 }
 
 export function writeSettings(settings: PickerSettings, path = getSettingsPath()): void {
-  if (parseThreshold(String(settings.threshold)) === undefined || parseMaxNew(String(settings.maxNew)) === undefined ||
+  if (typeof settings.enabled !== "boolean" || parseThreshold(String(settings.threshold)) === undefined || parseMaxNew(String(settings.maxNew)) === undefined ||
     !isTriggerMode(settings.triggerMode) ||
     (settings.apiBaseUrl !== undefined && !parseApiBaseUrl(settings.apiBaseUrl)) ||
     [settings.apiToken, settings.model].some((value) => value !== undefined &&

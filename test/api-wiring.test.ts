@@ -34,7 +34,15 @@ test("decision auth precedence: token override, custom no-auth, then Pi OpenRout
   globalThis.fetch = (async (url, init) => {
     networkCalls++;
     assert.equal(url, expectedUrl);
-    assert.equal(new Headers(init?.headers).get("Authorization"), expectedAuth);
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("Authorization"), expectedAuth);
+    if (expectedUrl.includes("openrouter.ai")) {
+      assert.equal(headers.get("User-Agent"), "pi-coding-agent (pi-skill-picker-jev)");
+      assert.equal(headers.get("X-Title"), "Pi Coding Agent");
+    } else {
+      assert.equal(headers.has("User-Agent"), false);
+      assert.equal(headers.has("X-Title"), false);
+    }
     return new Response(JSON.stringify({ answers: {} }));
   }) as typeof fetch;
   const decide = () => decideSkills(ctx as any, "Review code", [skill], [], { showStatus: false, requireKey: true });

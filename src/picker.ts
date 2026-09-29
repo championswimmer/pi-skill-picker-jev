@@ -102,7 +102,13 @@ export async function rankSkills(
         // Do not forward credentials or private task text through server redirects.
         redirect: "error",
         method: "POST", signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
-        headers: { ...(options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {}), "Content-Type": "application/json" },
+        headers: {
+          ...(options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {}),
+          "Content-Type": "application/json",
+          // Attribute OpenRouter calls to the host agent and this extension, rather
+          // than letting Node's generic fetch user-agent identify the client.
+          ...(!base ? { "User-Agent": "pi-coding-agent (pi-skill-picker-jev)", "X-Title": "Pi Coding Agent" } : {}),
+        },
         body: JSON.stringify({ model, state: {
           task: task.slice(-12_000), already_available: alreadySent.map((s) => `${s.name}: ${s.description}`).join("\n").slice(0, 3000),
         }, questions }),

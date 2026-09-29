@@ -35,11 +35,11 @@ export interface DecisionOptions {
 // Concrete, independently understandable levels per TypeSafe's Score guidance.
 // Each rubric measures one dimension; array position is the level number.
 const TASK_LEVELS = [
-  "Unrelated to the task; this skill would not help with any part of it.",
-  "Shares the general topic but provides no actionable help for the requested work.",
-  "Could provide optional supporting help, but is not directly needed to perform the task.",
-  "Directly useful for performing a concrete part of the requested task.",
-  "Essential to the central work explicitly requested in the task.",
+  "Unrelated; no help for this task.",
+  "Related topic; no actionable help.",
+  "Optional support; not directly needed.",
+  "Directly useful for a concrete part of the task.",
+  "Essential to the task's central work.",
 ];
 const TOPIC_LEVELS = [
   "Unrelated to the topics in the search query; provides no help working on them.",

@@ -47,6 +47,10 @@ TypeSafe and Kev use `POST /v1/systemone` with `model`, `state`, and `questions`
 
 Settings `apiBaseUrl`, `apiToken`, and `model` select the server. An explicit token overrides Pi's OpenRouter authentication (including its environment-backed key). Custom endpoints never inherit that key; blank token permits unauthenticated local serving. Endpoint changes clear tokens in the settings UI. Invalid persisted URLs fail closed; redirects are rejected. Tokens are saved only in the mode-0600 agent settings file, not sessions/history/usage.
 
+## Question-format efficiency
+
+The [question-format study](../.agents/plans/question-format-research.md) compares six prompt layouts on hosted Jev, starting with demo skills before scaling to 263 skills. Shorter task-rubric descriptions reduced input tokens by 10–17% and measured mean latency by 10–16% in follow-up runs, without missing the demo's partially labeled required skills. Terse question wording did cause misses; sharing a rubric changed more top-six selections. Production now uses the tested shorter task rubric with the original question wording; topic/global-importance rubrics, normalization, and thresholds are unchanged. The other layouts remain experimental, and the findings are not proof of accuracy equivalence. See the report for uncertainty, raw data, and reproduction commands.
+
 ## Reproduce local integration
 
 ```bash

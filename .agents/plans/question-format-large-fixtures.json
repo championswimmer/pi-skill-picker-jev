@@ -1,0 +1,32 @@
+[
+  {
+    "id": "authorization",
+    "task": "Fix authorization checks and tenant isolation in a backend API. Add tests for forbidden cross-project access and verify permission changes.",
+    "required": [], "forbidden": []
+  },
+  {
+    "id": "deploy-observability",
+    "task": "Investigate a production deployment failure using logs and metrics. Propose a safe rollback and write a recovery runbook.",
+    "required": [], "forbidden": []
+  },
+  {
+    "id": "frontend-performance",
+    "task": "Improve a slow React settings page: reduce unnecessary rendering, fix keyboard accessibility, and add browser regression tests.",
+    "required": [], "forbidden": []
+  },
+  {
+    "id": "database-migration",
+    "task": "Design a backwards-compatible database schema migration for a large table. Avoid blocking writes, backfill safely, and test rollback behavior.",
+    "required": [], "forbidden": []
+  },
+  {
+    "id": "billing",
+    "task": "Fix subscription proration and billing invoice calculations, handle failed payment retries, and add precise financial regression tests.",
+    "required": [], "forbidden": []
+  },
+  {
+    "id": "unrelated",
+    "task": "Explain the difference between a lunar eclipse and a solar eclipse. Do not modify or discuss any software project.",
+    "required": [], "forbidden": []
+  }
+]

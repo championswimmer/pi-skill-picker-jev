@@ -1,0 +1,450 @@
+[
+  {
+    "path": ".agents/plans/question-format-demo-pilot.json",
+    "callsIncludingWarmups": 110,
+    "costIncludingWarmups": 0.01399944,
+    "formats": [
+      {
+        "format": "baseline",
+        "n": 20,
+        "meanMs": 361.29847614999994,
+        "medianMs": 282.5263939999995,
+        "p95Ms": 436.6012589999991,
+        "pairedMeanDeltaMs": 0,
+        "pairedMedianDeltaMs": 0,
+        "meanRequestBytes": 13396.8,
+        "meanInputTokens": 3398.6,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.002854824,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 1,
+        "pairedRoundMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "fasterFraction": 0,
+        "meanSelectedJaccard": 1.0,
+        "meanAbsoluteScoreDelta": 0.0,
+        "thresholdCrossingFraction": 0,
+        "requiredChecks": 36,
+        "forbiddenChecks": 54
+      },
+      {
+        "format": "short-question",
+        "n": 20,
+        "meanMs": 339.9452826999995,
+        "medianMs": 282.7801344999989,
+        "p95Ms": 376.5262590000002,
+        "pairedMeanDeltaMs": -21.353193450000436,
+        "pairedMedianDeltaMs": 2.637680499999078,
+        "meanRequestBytes": 12763.2,
+        "meanInputTokens": 3279.8,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.002755032,
+        "requiredMisses": 2,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.6,
+        "pairedRoundMeanDelta95CI": [
+          -191.71,
+          131.13
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -183.53,
+          124.0
+        ],
+        "fasterFraction": 0.5,
+        "meanSelectedJaccard": 0.8666666666666667,
+        "meanAbsoluteScoreDelta": 0.044412878787878786,
+        "thresholdCrossingFraction": 0.020202020202020204,
+        "requiredChecks": 36,
+        "forbiddenChecks": 54
+      },
+      {
+        "format": "short-rubric",
+        "n": 20,
+        "meanMs": 332.9641821499998,
+        "medianMs": 275.58671850000064,
+        "p95Ms": 372.29769300000044,
+        "pairedMeanDeltaMs": -28.33429400000018,
+        "pairedMedianDeltaMs": -8.932936500000324,
+        "meanRequestBytes": 9872.4,
+        "meanInputTokens": 2824.4,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.0023724960000000004,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.8,
+        "pairedRoundMeanDelta95CI": [
+          -206.45,
+          139.3
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -65.95,
+          7.32
+        ],
+        "fasterFraction": 0.6,
+        "meanSelectedJaccard": 0.9,
+        "meanAbsoluteScoreDelta": 0.03115530303030303,
+        "thresholdCrossingFraction": 0.020202020202020204,
+        "requiredChecks": 36,
+        "forbiddenChecks": 54
+      },
+      {
+        "format": "compact",
+        "n": 20,
+        "meanMs": 276.92158684999987,
+        "medianMs": 272.50933350000014,
+        "p95Ms": 297.3018169999996,
+        "pairedMeanDeltaMs": -84.37688930000009,
+        "pairedMedianDeltaMs": -16.896858499998416,
+        "meanRequestBytes": 9238.8,
+        "meanInputTokens": 2705.6,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.002272704,
+        "requiredMisses": 2,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.5,
+        "pairedRoundMeanDelta95CI": [
+          -223.88,
+          0.14
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -215.27,
+          -0.36
+        ],
+        "fasterFraction": 0.75,
+        "meanSelectedJaccard": 0.7833333333333333,
+        "meanAbsoluteScoreDelta": 0.08150252525252526,
+        "thresholdCrossingFraction": 0.030303030303030304,
+        "requiredChecks": 36,
+        "forbiddenChecks": 54
+      },
+      {
+        "format": "shared-catalog",
+        "n": 20,
+        "meanMs": 342.7041805500002,
+        "medianMs": 295.34762100000444,
+        "p95Ms": 355.0088179999984,
+        "pairedMeanDeltaMs": -18.594295599999715,
+        "pairedMedianDeltaMs": 8.444867000001068,
+        "meanRequestBytes": 9784.2,
+        "meanInputTokens": 2977.6,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.0025011840000000005,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.5,
+        "pairedRoundMeanDelta95CI": [
+          -188.08,
+          140.71
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -177.28,
+          143.12
+        ],
+        "fasterFraction": 0.45,
+        "meanSelectedJaccard": 0.8133333333333334,
+        "meanAbsoluteScoreDelta": 0.059690656565656565,
+        "thresholdCrossingFraction": 0.030303030303030304,
+        "requiredChecks": 36,
+        "forbiddenChecks": 54
+      }
+    ]
+  },
+  {
+    "path": ".agents/plans/question-format-demo-confirm.json",
+    "callsIncludingWarmups": 156,
+    "costIncludingWarmups": 0.018967872,
+    "formats": [
+      {
+        "format": "baseline",
+        "n": 50,
+        "meanMs": 315.7649595600001,
+        "medianMs": 259.58585350000067,
+        "p95Ms": 473.9650980000006,
+        "pairedMeanDeltaMs": 0,
+        "pairedMedianDeltaMs": 0,
+        "meanRequestBytes": 13396.8,
+        "meanInputTokens": 3398.6,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.007137059999999996,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 1,
+        "pairedRoundMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "fasterFraction": 0,
+        "meanSelectedJaccard": 1.0,
+        "meanAbsoluteScoreDelta": 0.0,
+        "thresholdCrossingFraction": 0,
+        "requiredChecks": 90,
+        "forbiddenChecks": 135
+      },
+      {
+        "format": "short-rubric",
+        "n": 50,
+        "meanMs": 283.80715355999973,
+        "medianMs": 243.49206349999986,
+        "p95Ms": 456.2673530000011,
+        "pairedMeanDeltaMs": -31.9578060000003,
+        "pairedMedianDeltaMs": -2.6859809999969,
+        "meanRequestBytes": 9872.4,
+        "meanInputTokens": 2824.4,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.005931240000000002,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.8,
+        "pairedRoundMeanDelta95CI": [
+          -70.52,
+          5.9
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -58.99,
+          -7.65
+        ],
+        "fasterFraction": 0.56,
+        "meanSelectedJaccard": 0.925,
+        "meanAbsoluteScoreDelta": 0.03083333333333333,
+        "thresholdCrossingFraction": 0.015151515151515152,
+        "requiredChecks": 90,
+        "forbiddenChecks": 135
+      },
+      {
+        "format": "shared-rubric",
+        "n": 50,
+        "meanMs": 297.1965839200001,
+        "medianMs": 258.18325249999907,
+        "p95Ms": 439.89123199999995,
+        "pairedMeanDeltaMs": -18.568375639999967,
+        "pairedMedianDeltaMs": -9.245587999997952,
+        "meanRequestBytes": 8139,
+        "meanInputTokens": 2470,
+        "meanOutputTokens": 291,
+        "measuredCost": 0.005187,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.7,
+        "pairedRoundMeanDelta95CI": [
+          -53.19,
+          15.73
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -58.2,
+          21.17
+        ],
+        "fasterFraction": 0.54,
+        "meanSelectedJaccard": 0.91,
+        "meanAbsoluteScoreDelta": 0.04061111111111111,
+        "thresholdCrossingFraction": 0.01616161616161616,
+        "requiredChecks": 90,
+        "forbiddenChecks": 135
+      }
+    ]
+  },
+  {
+    "path": ".agents/plans/question-format-demo-long.json",
+    "callsIncludingWarmups": 66,
+    "costIncludingWarmups": 0.013611486,
+    "formats": [
+      {
+        "format": "baseline",
+        "n": 20,
+        "meanMs": 325.24224365,
+        "medianMs": 279.8377419999997,
+        "p95Ms": 458.6952390000006,
+        "pairedMeanDeltaMs": 0,
+        "pairedMedianDeltaMs": 0,
+        "meanRequestBytes": 22776,
+        "meanInputTokens": 5362,
+        "meanOutputTokens": 264,
+        "measuredCost": 0.00450408,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 1,
+        "pairedRoundMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "fasterFraction": 0,
+        "meanSelectedJaccard": 1.0,
+        "meanAbsoluteScoreDelta": 0.0,
+        "thresholdCrossingFraction": 0,
+        "requiredChecks": 25,
+        "forbiddenChecks": 45
+      },
+      {
+        "format": "short-rubric",
+        "n": 20,
+        "meanMs": 274.1084779000001,
+        "medianMs": 266.18251350000014,
+        "p95Ms": 319.14066000000093,
+        "pairedMeanDeltaMs": -51.13376574999991,
+        "pairedMedianDeltaMs": -23.270148999999037,
+        "meanRequestBytes": 19572,
+        "meanInputTokens": 4840,
+        "meanOutputTokens": 264,
+        "measuredCost": 0.0040656,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 1,
+        "pairedRoundMeanDelta95CI": [
+          -118.85,
+          -4.46
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -109.82,
+          -11.13
+        ],
+        "fasterFraction": 0.8,
+        "meanSelectedJaccard": 1.0,
+        "meanAbsoluteScoreDelta": 0.034506944444444444,
+        "thresholdCrossingFraction": 0,
+        "requiredChecks": 25,
+        "forbiddenChecks": 45
+      },
+      {
+        "format": "shared-rubric",
+        "n": 20,
+        "meanMs": 281.03286485000007,
+        "medianMs": 265.84242900000004,
+        "p95Ms": 323.94045300000107,
+        "pairedMeanDeltaMs": -44.2093787999999,
+        "pairedMedianDeltaMs": -11.917316000000937,
+        "meanRequestBytes": 18033,
+        "meanInputTokens": 4527,
+        "meanOutputTokens": 264,
+        "measuredCost": 0.0038026800000000006,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.75,
+        "pairedRoundMeanDelta95CI": [
+          -114.83,
+          10.08
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -110.84,
+          -0.94
+        ],
+        "fasterFraction": 0.7,
+        "meanSelectedJaccard": 0.9375,
+        "meanAbsoluteScoreDelta": 0.0461875,
+        "thresholdCrossingFraction": 0.013888888888888888,
+        "requiredChecks": 25,
+        "forbiddenChecks": 45
+      }
+    ]
+  },
+  {
+    "path": ".agents/plans/question-format-large.json",
+    "callsIncludingWarmups": 360,
+    "costIncludingWarmups": 0.138010572,
+    "formats": [
+      {
+        "format": "baseline",
+        "n": 18,
+        "meanMs": 505.49534033333305,
+        "medianMs": 496.7887084999993,
+        "p95Ms": 630.3672099999967,
+        "pairedMeanDeltaMs": 0,
+        "pairedMedianDeltaMs": 0,
+        "meanRequestBytes": 246944,
+        "meanInputTokens": 61666,
+        "meanOutputTokens": 3909,
+        "measuredCost": 0.046619496,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 1,
+        "pairedRoundMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          0.0,
+          0.0
+        ],
+        "fasterFraction": 0,
+        "meanSelectedJaccard": 1.0,
+        "meanAbsoluteScoreDelta": 0.0,
+        "thresholdCrossingFraction": 0,
+        "requiredChecks": 0,
+        "forbiddenChecks": 0
+      },
+      {
+        "format": "short-rubric",
+        "n": 18,
+        "meanMs": 439.97607305555584,
+        "medianMs": 437.0601970000016,
+        "p95Ms": 603.5087779999994,
+        "pairedMeanDeltaMs": -65.51926727777716,
+        "pairedMedianDeltaMs": -48.126822999997785,
+        "meanRequestBytes": 200130,
+        "meanInputTokens": 54039,
+        "meanOutputTokens": 3909,
+        "measuredCost": 0.040853484,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.8888888888888888,
+        "pairedRoundMeanDelta95CI": [
+          -115.2,
+          -16.56
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -85.06,
+          -42.08
+        ],
+        "fasterFraction": 0.7222222222222222,
+        "meanSelectedJaccard": 0.9682539682539683,
+        "meanAbsoluteScoreDelta": 0.011521440642163075,
+        "thresholdCrossingFraction": 0.0016899028305872412,
+        "requiredChecks": 0,
+        "forbiddenChecks": 0
+      },
+      {
+        "format": "shared-rubric",
+        "n": 18,
+        "meanMs": 399.67030427777786,
+        "medianMs": 390.7787019999996,
+        "p95Ms": 550.3082419999992,
+        "pairedMeanDeltaMs": -105.82503605555513,
+        "pairedMedianDeltaMs": -102.56220699999994,
+        "meanRequestBytes": 174156,
+        "meanInputTokens": 48596,
+        "meanOutputTokens": 3909,
+        "measuredCost": 0.036738575999999995,
+        "requiredMisses": 0,
+        "forbiddenHits": 0,
+        "selectionAgreement": 0.6666666666666666,
+        "pairedRoundMeanDelta95CI": [
+          -147.91,
+          -61.45
+        ],
+        "pairedFixtureMeanDelta95CI": [
+          -143.57,
+          -69.66
+        ],
+        "fasterFraction": 0.8333333333333334,
+        "meanSelectedJaccard": 0.8333333333333334,
+        "meanAbsoluteScoreDelta": 0.017516370933671314,
+        "thresholdCrossingFraction": 0.005069708491761723,
+        "requiredChecks": 0,
+        "forbiddenChecks": 0
+      }
+    ]
+  }
+]

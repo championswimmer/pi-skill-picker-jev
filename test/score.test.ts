@@ -25,9 +25,18 @@ test("Score normalizes levels, includes the default boundary, and ignores confid
   const ranked = await rankSkills("task", candidates, [], { apiKey: "test", fetcher });
   assert.deepEqual(ranked.map((r) => r.score), [1, 0.625]);
   assert.equal(request.questions.s0.type, "score");
-  assert.equal(request.questions.s0.criteria.length, 5);
-  assert.match(request.questions.s0.criteria[0], /Unrelated/);
-  assert.match(request.questions.s0.criteria[4], /Essential/);
+  for (const [index, candidate] of candidates.entries()) {
+    assert.equal(request.questions[`s${index}`].instructions,
+      `How useful would this skill be for the current task? Name: ${candidate.name}. Description: ${candidate.description}`);
+    assert.deepEqual(request.questions[`s${index}`].criteria, [
+      "Unrelated; no help for this task.",
+      "Related topic; no actionable help.",
+      "Optional support; not directly needed.",
+      "Directly useful for a concrete part of the task.",
+      "Essential to the task's central work.",
+    ]);
+  }
+  assert.deepEqual(request.state, { task: "task", already_available: "" });
   const all = await rankSkills("task", candidates, [], { apiKey: "test", fetcher, threshold: 0 });
   assert.equal(all.length, 4);
   assert.equal(all[3].score, 0);

@@ -25,6 +25,6 @@ The picker runs on each new prompt and, by default, checks again after new text 
 
 If the decision service is unavailable or has no credentials, the picker does **not** show Pi the full skill catalog as a fallback. Already selected and project always-allowed skills remain available.
 
-For setting defaults, the Always allowed editor, and using local Kev or another decision server, see the [usage guide](docs/usage.md).
+For a hands-on project with 20 skills, try the [storefront demo](demo/README.md). For setting defaults, the Always allowed editor, and using local Kev or another decision server, see the [usage guide](docs/usage.md).
 
 For contributors: [AGENTS.md](AGENTS.md) covers implementation and development; [scoring research](docs/scoring-research.md) covers the ranking experiments.

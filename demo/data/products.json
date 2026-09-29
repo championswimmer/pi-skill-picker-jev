@@ -1,0 +1,5 @@
+[
+  { "sku": "MUG-01", "name": "Ceramic mug", "priceCents": 1800, "stock": 12 },
+  { "sku": "BAG-02", "name": "Canvas tote", "priceCents": 2400, "stock": 3 },
+  { "sku": "PIN-03", "name": "Enamel pin", "priceCents": 800, "stock": 0 }
+]

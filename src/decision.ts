@@ -15,6 +15,7 @@ export function decideSkills(
 ) {
   const operation = async () => {
     const settings = readSettings();
+    if (options.signal?.aborted) throw options.signal.reason;
     let timer: ReturnType<typeof setTimeout> | undefined;
     // Custom servers may be unauthenticated. Never leak Pi's OpenRouter key to them.
     let keyRequest = settings.apiToken !== undefined || settings.apiBaseUrl !== undefined
@@ -27,8 +28,18 @@ export function decideSkills(
       })]);
     }
     let apiKey: string;
-    try { apiKey = await keyRequest ?? ""; }
-    finally { if (timer) clearTimeout(timer); }
+    try {
+      apiKey = await (options.signal
+        ? Promise.race([keyRequest, new Promise<never>((_, reject) => {
+            const abort = () => reject(options.signal!.reason);
+            options.signal!.addEventListener("abort", abort, { once: true });
+            keyRequest.then(
+              () => options.signal!.removeEventListener("abort", abort),
+              () => options.signal!.removeEventListener("abort", abort),
+            );
+          })])
+        : keyRequest) ?? "";
+    } finally { if (timer) clearTimeout(timer); }
     if (options.requireKey && !apiKey && !settings.apiBaseUrl) throw new Error("OpenRouter authentication is required for relevance sorting");
     return rankSkills(task, candidates, alreadySent, {
       ...options,

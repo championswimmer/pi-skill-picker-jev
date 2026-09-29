@@ -62,6 +62,17 @@ test("decision auth precedence: token override, custom no-auth, then Pi OpenRout
   assert.equal(authCalls, 1);
 }));
 
+test("decision forwards the agent cancellation signal to an in-flight Jev request", async () => isolated(async () => {
+  const controller = new AbortController();
+  globalThis.fetch = ((_url: unknown, init: RequestInit) => new Promise((_resolve, reject) => {
+    init.signal!.addEventListener("abort", () => reject(init.signal!.reason), { once: true });
+  })) as typeof fetch;
+  const ctx = { hasUI: false, modelRegistry: { getApiKeyForProvider: async () => "key" } };
+  const pending = decideSkills(ctx as any, "Review code", [skill], [], { showStatus: false, signal: controller.signal });
+  controller.abort(new Error("user cancelled"));
+  await assert.rejects(pending, /user cancelled/);
+}));
+
 test("API settings UI persists URL/model, never prefills tokens, and clears tokens on endpoint changes", async () => isolated(async (dir) => {
   let command: any;
   writeSettings({ ...DEFAULT_SETTINGS, apiToken: "old-private-token" });

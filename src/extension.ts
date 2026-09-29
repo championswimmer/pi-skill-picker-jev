@@ -223,11 +223,11 @@ export default function skillPicker(pi: ExtensionAPI) {
     const pending = inventory.filter((skill) => !selected.has(skill.name));
     if (pending.length) {
       try {
-        const newlySelected = await decideSkills(ctx, lastPrompt, pending, [...selected.values()], settings);
+        const newlySelected = await decideSkills(ctx, lastPrompt, pending, [...selected.values()], { ...settings, signal: ctx.signal });
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, 1);
       } catch (error) {
-        console.error("[pi-skill-picker-jev] Initial ranking failed (skills hidden):", error);
+        if (!ctx.signal?.aborted) console.error("[pi-skill-picker-jev] Initial ranking failed (skills hidden):", error);
       }
     }
     event.systemPromptOptions.skills = [...selected.values()];
@@ -248,11 +248,11 @@ export default function skillPicker(pi: ExtensionAPI) {
     if (shouldRank && pending.length) {
       const context = transcriptText(event.messages, lastPrompt);
       try {
-        const newlySelected = await decideSkills(ctx, context, pending, [...selected.values()], settings);
+        const newlySelected = await decideSkills(ctx, context, pending, [...selected.values()], { ...settings, signal: ctx.signal });
         for (const { skill } of newlySelected) selected.set(skill.name, skill);
         recordAddition(newlySelected, requestNumber);
       } catch (error) {
-        console.error("[pi-skill-picker-jev] Incremental ranking failed (keeping previous skills):", error);
+        if (!ctx.signal?.aborted) console.error("[pi-skill-picker-jev] Incremental ranking failed (keeping previous skills):", error);
       }
     }
     // Pi's system prompt is section-based. Override ONLY its skills section for

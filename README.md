@@ -2,6 +2,14 @@
 
 Pi can load many skills, but most tasks need only a few. This extension asks [Jev](https://openrouter.ai/) which of your available skills fit the task, then shows Pi only those skills instead of the whole catalog. Pi still loads a skill's full instructions only when it needs them.
 
+## A smaller initial system prompt
+
+On the 20-skill [storefront demo](demo/README.md), the extension reduces the initial system prompt by about **1,000 tokens**: skills are selected for the request instead of sending the whole catalog.
+
+| Without Skill Picker | With Skill Picker |
+| --- | --- |
+| ![Before: the complete skill catalog is in Pi's initial context](docs/skill-picker-before.gif) | ![After: only selected skills are in Pi's initial context](docs/skill-picker-after.gif) |
+
 ## Install
 
 Requires Pi 0.87.1+ and an OpenRouter API key available to Pi (or a [compatible decision server](docs/usage.md#use-a-different-decision-server)).

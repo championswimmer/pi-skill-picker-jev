@@ -2,15 +2,32 @@
   "name": "pi-skill-picker-jev",
   "version": "0.1.0",
   "description": "Keep Pi's skill catalog out of context until Jev selects relevant skills",
+  "homepage": "https://github.com/championswimmer/pi-skill-picker-jev#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/championswimmer/pi-skill-picker-jev.git"
   },
+  "bugs": {
+    "url": "https://github.com/championswimmer/pi-skill-picker-jev/issues"
+  },
+  "author": "Arnav Gupta",
+  "keywords": [
+    "pi",
+    "pi-extension",
+    "skills",
+    "openrouter",
+    "jev",
+    "prompt-optimization"
+  ],
   "engines": {
     "node": ">=22"
   },
   "files": [
-    "src/"
+    "src/",
+    "docs/usage.md",
+    "docs/troubleshooting.md",
+    "docs/implementation.md",
+    "CHANGELOG.md"
   ],
   "type": "module",
   "license": "MIT",
@@ -21,11 +38,13 @@
   },
   "scripts": {
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:check": "npm run typecheck && npm test && npm pack --dry-run",
+    "prepublishOnly": "npm run release:check"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
+    "@earendil-works/pi-coding-agent": ">=0.87.1",
+    "@earendil-works/pi-tui": ">=0.87.1"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.99.2",

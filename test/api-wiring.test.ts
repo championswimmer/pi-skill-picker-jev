@@ -23,14 +23,34 @@ async function isolated(fn: (dir: string) => Promise<void>) {
   }
 }
 
-test("decision auth precedence: token override, custom no-auth, then Pi OpenRouter auth", async () => isolated(async (dir) => {
+test("decision routes by mode: OpenRouter, custom HTTP, and Pi classifier", async () => isolated(async (dir) => {
   let authCalls = 0;
   let expectedUrl = "https://openrouter.ai/api/alpha/decisions";
-  let expectedAuth: string | null = "Bearer override";
+  let expectedAuth: string | null = "Bearer pi-provider-key";
   let networkCalls = 0;
-  const ctx = { cwd: dir, hasUI: false, ui: {}, modelRegistry: { getApiKeyForProvider: async (provider: string) => {
-    assert.equal(provider, "openrouter"); authCalls++; return "pi-provider-key";
-  } } };
+  let classifierCalls = 0;
+  const classifierLookups: Array<[string, string, string]> = [];
+  const classifier = { provider: "typesafe", id: "jev-latest" };
+  const ctx = { cwd: dir, hasUI: false, ui: {}, modelRegistry: {
+    getApiKeyForProvider: async (provider: string) => {
+      assert.equal(provider, "openrouter");
+      authCalls++;
+      return "pi-provider-key";
+    },
+    findOfType: (type: string, provider: string, modelId: string) => {
+      classifierLookups.push([type, provider, modelId]);
+      return type === "classifier" && provider === "typesafe" && modelId === "jev-latest" ? classifier as any : undefined;
+    },
+    classify: async (model: unknown, context: any, options: { signal?: AbortSignal }) => {
+      classifierCalls++;
+      assert.equal(model, classifier);
+      assert.ok(options.signal instanceof AbortSignal);
+      assert.equal(options.signal.aborted, false);
+      assert.equal(context.state.task, "Review code");
+      assert.match(context.questions.s0.instructions, /How useful would this skill be for the current task\? Name: review\. Description: Review code/);
+      return { stopReason: "stop", answers: { s0: { type: "score", score: 4 } } };
+    },
+  } };
   globalThis.fetch = (async (url, init) => {
     networkCalls++;
     assert.equal(url, expectedUrl);
@@ -46,27 +66,35 @@ test("decision auth precedence: token override, custom no-auth, then Pi OpenRout
     return new Response(JSON.stringify({ answers: {} }));
   }) as typeof fetch;
   const decide = () => decideSkills(ctx as any, "Review code", [skill], [], { showStatus: false, requireKey: true });
-  writeSettings({ ...DEFAULT_SETTINGS, apiToken: "override" });
+
+  writeSettings({ ...DEFAULT_SETTINGS, mode: "openrouter-jev", apiBaseUrl: "http://127.0.0.1:8008", apiToken: "override" });
   await decide();
-  assert.equal(authCalls, 0);
+  assert.equal(authCalls, 1, "OpenRouter mode must use Pi's OpenRouter credentials, not custom HTTP settings");
+
   expectedUrl = "http://127.0.0.1:8008/v1/systemone";
   expectedAuth = null;
-  writeSettings({ ...DEFAULT_SETTINGS, apiBaseUrl: "http://127.0.0.1:8008" });
+  writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: "http://127.0.0.1:8008" });
   await decide();
-  assert.equal(authCalls, 0);
+  assert.equal(authCalls, 1, "custom HTTP mode must not ask Pi for OpenRouter credentials");
+
   expectedAuth = "Bearer local-token";
-  writeSettings({ ...DEFAULT_SETTINGS, apiBaseUrl: "http://127.0.0.1:8008", apiToken: "local-token" });
-  await decide();
-  assert.equal(authCalls, 0);
-  expectedUrl = "https://openrouter.ai/api/alpha/decisions";
-  expectedAuth = "Bearer pi-provider-key";
-  writeSettings(DEFAULT_SETTINGS);
+  writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: "http://127.0.0.1:8008", apiToken: "local-token" });
   await decide();
   assert.equal(authCalls, 1);
-  assert.equal(networkCalls, 4);
-  writeFileSync(join(dir, "pi-skill-picker-jev.json"), JSON.stringify({ ...DEFAULT_SETTINGS, apiBaseUrl: "bad-url", apiToken: "private" }));
-  await assert.rejects(decide(), /Invalid TypeSafe API base URL/);
-  assert.equal(networkCalls, 4);
+
+  writeSettings({ ...DEFAULT_SETTINGS, mode: "pi-classifier" });
+  const ranked = await decide();
+  assert.deepEqual(ranked.map(({ skill, score }) => [skill.name, score]), [["review", 1]]);
+  assert.equal(authCalls, 1, "Pi classifier mode must not ask Pi for OpenRouter credentials");
+  assert.equal(networkCalls, 3, "Pi classifier mode must not use fetch/direct HTTP");
+  assert.equal(classifierCalls, 1);
+  assert.deepEqual(classifierLookups, [["classifier", "typesafe", "jev-latest"]]);
+
+  writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http" });
+  await assert.rejects(decide(), /Custom HTTP mode requires a valid configured TypeSafe API base URL/);
+  writeFileSync(join(dir, "pi-skill-picker-jev.json"), JSON.stringify({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: "bad-url", apiToken: "private" }));
+  await assert.rejects(decide(), /Custom HTTP mode requires a valid configured TypeSafe API base URL/);
+  assert.equal(networkCalls, 3);
   assert.equal(authCalls, 1);
 }));
 

@@ -12,22 +12,42 @@ export const TRIGGER_LABELS: Record<TriggerMode, string> = {
   "every-request": "Every changed request",
 };
 
+export const CLASSIFIER_MODES = ["openrouter-jev", "custom-http", "pi-classifier"] as const;
+export type ClassifierMode = typeof CLASSIFIER_MODES[number];
+
+export const CLASSIFIER_MODE_LABELS: Record<ClassifierMode, string> = {
+  "openrouter-jev": "Hosted OpenRouter / Jev",
+  "custom-http": "Custom HTTP endpoint",
+  "pi-classifier": "Pi classifier",
+};
+
 export interface PickerSettings {
   enabled: boolean;
   threshold: number;
   maxNew: number;
   triggerMode: TriggerMode;
-  /** TypeSafe-compatible server root (without /v1/systemone). Unset uses OpenRouter. */
+  mode: ClassifierMode;
+  /** TypeSafe-compatible server root (without /v1/systemone). */
   apiBaseUrl?: string;
-  /** Overrides Pi's OpenRouter credentials; never sent to a different endpoint implicitly. */
+  /** Never sent to a different endpoint implicitly. */
   apiToken?: string;
   model?: string;
 }
 
-export const DEFAULT_SETTINGS: PickerSettings = { enabled: true, threshold: 0.625, maxNew: 6, triggerMode: "prompt-and-tools" };
+export const DEFAULT_SETTINGS: PickerSettings = {
+  enabled: true,
+  threshold: 0.625,
+  maxNew: 6,
+  triggerMode: "prompt-and-tools",
+  mode: "openrouter-jev",
+};
 
 export function isTriggerMode(value: unknown): value is TriggerMode {
   return TRIGGER_MODES.some((mode) => mode === value);
+}
+
+export function isClassifierMode(value: unknown): value is ClassifierMode {
+  return CLASSIFIER_MODES.some((mode) => mode === value);
 }
 
 export function getSettingsPath(): string {
@@ -60,15 +80,21 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
   try {
     const data: unknown = JSON.parse(readFileSync(path, "utf8"));
     if (!data || typeof data !== "object") return { ...DEFAULT_SETTINGS };
-    const { enabled, threshold, maxNew, triggerMode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
+    const { enabled, threshold, maxNew, triggerMode, mode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
     // Keep invalid endpoints: request validation must fail closed, not
     // silently send a custom server's token/task to OpenRouter.
     const optional = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
+    const classifierMode = isClassifierMode(mode)
+      ? mode
+      : mode === undefined && (apiBaseUrl !== undefined || apiToken !== undefined)
+        ? "custom-http"
+        : DEFAULT_SETTINGS.mode;
     return {
       enabled: typeof enabled === "boolean" ? enabled : DEFAULT_SETTINGS.enabled,
       threshold: typeof threshold === "number" ? parseThreshold(String(threshold)) ?? DEFAULT_SETTINGS.threshold : DEFAULT_SETTINGS.threshold,
       maxNew: typeof maxNew === "number" ? parseMaxNew(String(maxNew)) ?? DEFAULT_SETTINGS.maxNew : DEFAULT_SETTINGS.maxNew,
       triggerMode: isTriggerMode(triggerMode) ? triggerMode : DEFAULT_SETTINGS.triggerMode,
+      mode: classifierMode,
       ...(apiBaseUrl !== undefined ? { apiBaseUrl: typeof apiBaseUrl === "string" ? apiBaseUrl.trim() : "invalid:base-url" } : {}),
       ...(optional(apiToken) ? { apiToken: optional(apiToken) } : {}),
       ...(optional(model) ? { model: optional(model) } : {}),
@@ -78,7 +104,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
 
 export function writeSettings(settings: PickerSettings, path = getSettingsPath()): void {
   if (typeof settings.enabled !== "boolean" || parseThreshold(String(settings.threshold)) === undefined || parseMaxNew(String(settings.maxNew)) === undefined ||
-    !isTriggerMode(settings.triggerMode) ||
+    !isTriggerMode(settings.triggerMode) || !isClassifierMode(settings.mode) ||
     (settings.apiBaseUrl !== undefined && !parseApiBaseUrl(settings.apiBaseUrl)) ||
     [settings.apiToken, settings.model].some((value) => value !== undefined &&
       (typeof value !== "string" || !value.trim() || /[\r\n]/.test(value)))) {

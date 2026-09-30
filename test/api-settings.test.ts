@@ -10,12 +10,12 @@ import { rankSkills } from "../src/picker.ts";
 const candidate: Skill = { name: "review", description: "Review source code", filePath: "/skills/review/SKILL.md", baseDir: "/skills/review", disableModelInvocation: false,
   sourceInfo: { path: "/skills/review/SKILL.md", source: "test", scope: "project", origin: "top-level", baseDir: "/skills/review" } };
 
-test("custom API settings persist privately without changing legacy defaults", () => {
+test("classifier settings persist privately and infer legacy mode defaults", () => {
   const dir = mkdtempSync(join(tmpdir(), "picker-api-"));
   const path = join(dir, "settings.json");
   try {
     assert.deepEqual(readSettings(path), DEFAULT_SETTINGS);
-    const settings = { ...DEFAULT_SETTINGS, apiBaseUrl: "http://127.0.0.1:8008", apiToken: "local-test-token", model: "kev-latest" };
+    const settings = { ...DEFAULT_SETTINGS, mode: "custom-http" as const, apiBaseUrl: "http://127.0.0.1:8008", apiToken: "local-test-token", model: "kev-latest" };
     writeSettings(settings, path);
     assert.deepEqual(readSettings(path), settings);
     assert.equal(statSync(path).mode & 0o777, 0o600);
@@ -23,9 +23,13 @@ test("custom API settings persist privately without changing legacy defaults", (
     writeSettings(DEFAULT_SETTINGS, path);
     assert.deepEqual(readSettings(path), DEFAULT_SETTINGS);
     writeFileSync(path, JSON.stringify({ apiBaseUrl: "not-a-url", apiToken: "private" }));
+    assert.equal(readSettings(path).mode, "custom-http");
     assert.equal(readSettings(path).apiBaseUrl, "not-a-url", "invalid endpoint must not fall back to OpenRouter");
+    writeFileSync(path, JSON.stringify({ apiToken: "private" }));
+    assert.equal(readSettings(path).mode, "custom-http");
     for (const apiBaseUrl of ["", null, 123, {}]) {
       writeFileSync(path, JSON.stringify({ apiBaseUrl, apiToken: "private" }));
+      assert.equal(readSettings(path).mode, "custom-http");
       assert.notEqual(readSettings(path).apiBaseUrl, undefined, "malformed endpoint must not enable OpenRouter fallback");
     }
     assert.throws(() => writeSettings(settingsWithUrl("file:///tmp/api"), path));

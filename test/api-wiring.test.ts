@@ -81,31 +81,114 @@ test("decision forwards the agent cancellation signal to an in-flight Jev reques
   await assert.rejects(pending, /user cancelled/);
 }));
 
-test("API settings UI persists URL/model, never prefills tokens, and clears tokens on endpoint changes", async () => isolated(async (dir) => {
+test("API settings UI keeps custom-http mode, labels, and saved values coherent", async () => isolated(async (dir) => {
   let command: any;
   writeSettings({ ...DEFAULT_SETTINGS, apiToken: "old-private-token" });
   skillPicker({ on: () => {}, registerCommand: (_name: string, options: any) => { command = options; } } as any);
-  const selections = ["TypeSafe API base URL:", "API token:", "Decision model:", "Done"];
-  const values = ["http://127.0.0.1:8008/", "new-private-token", "kev-latest"];
+  const values = ["http://127.0.0.1:8008/", "new-private-token", "kev-latest", "second-private-token", "http://127.0.0.1:9000/"];
   const inputs: { title: string; prefill: unknown }[] = [];
-  const ctx = { cwd: dir, hasUI: true, ui: {
-    select: async (_title: string, options: string[]) => {
-      assert.ok(options.every((s) => !s.includes("private-token")));
-      const prefix = selections.shift()!;
-      if (prefix === "API token:") assert.equal(readSettings().apiToken, undefined);
-      return options.find((s) => s.startsWith(prefix));
+  const selectPlans: Array<{ title: string; pick: (options: string[]) => string | undefined }> = [
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
+        assert.ok(options.every((s) => !s.includes("private-token")));
+        assert.ok(options.includes("Classifier mode: Hosted OpenRouter / Jev"));
+        assert.ok(options.includes("Custom HTTP base URL (used by Custom HTTP endpoint mode): not set"));
+        assert.ok(options.includes("Custom HTTP token (used by Custom HTTP endpoint mode): configured (hidden)"));
+        return options.find((s) => s.startsWith("Custom HTTP base URL (used by Custom HTTP endpoint mode):"));
+      },
     },
-    input: async (title: string, prefill: unknown) => { inputs.push({ title, prefill }); return values.shift(); },
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
+        assert.ok(options.includes("Classifier mode: Custom HTTP endpoint"));
+        assert.ok(options.includes("Custom HTTP base URL: http://127.0.0.1:8008"));
+        assert.ok(options.includes("Custom HTTP token: not set"));
+        return options.find((s) => s.startsWith("Custom HTTP token:"));
+      },
+    },
+    {
+      title: "Skill picker settings",
+      pick: (options) => options.find((s) => s.startsWith("Decision model:")),
+    },
+    { title: "Skill picker settings", pick: () => "Done" },
+    {
+      title: "Skill picker settings",
+      pick: (options) => options.find((s) => s.startsWith("Classifier mode:")),
+    },
+    {
+      title: "Classifier mode",
+      pick: (options) => options.find((s) => s === "Pi classifier"),
+    },
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
+        assert.ok(options.includes("Classifier mode: Pi classifier"));
+        assert.ok(options.includes("Custom HTTP base URL (used by Custom HTTP endpoint mode): not set"));
+        assert.ok(options.includes("Custom HTTP token (used by Custom HTTP endpoint mode): not set"));
+        return options.find((s) => s.startsWith("Custom HTTP token (used by Custom HTTP endpoint mode):"));
+      },
+    },
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
+        assert.ok(options.includes("Classifier mode: Custom HTTP endpoint"));
+        assert.ok(options.includes("Custom HTTP token: configured (hidden)"));
+        return "Done";
+      },
+    },
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
+        assert.ok(options.includes("Custom HTTP token: configured (hidden)"));
+        return options.find((s) => s.startsWith("Custom HTTP base URL:"));
+      },
+    },
+    { title: "Skill picker settings", pick: () => "Done" },
+  ];
+  const ctx = { cwd: dir, hasUI: true, ui: {
+    select: async (title: string, options: string[]) => {
+      const plan = selectPlans.shift();
+      assert.ok(plan, `unexpected select: ${title}`);
+      assert.equal(title, plan.title);
+      return plan.pick(options);
+    },
+    input: async (title: string, prefill: unknown) => {
+      inputs.push({ title, prefill });
+      if (title.startsWith("Custom HTTP token")) assert.equal(prefill, undefined);
+      return values.shift();
+    },
     notify: () => {},
   } };
   await command.handler("settings", ctx);
-  assert.equal(readSettings().apiBaseUrl, "http://127.0.0.1:8008");
-  assert.equal(readSettings().apiToken, "new-private-token");
-  assert.equal(readSettings().model, "kev-latest");
-  assert.equal(inputs.find((i) => i.title.startsWith("API token"))?.prefill, undefined);
-  selections.push("TypeSafe API base URL:", "Done");
-  values.push("");
+  assert.deepEqual(readSettings(), {
+    ...DEFAULT_SETTINGS,
+    mode: "custom-http",
+    apiBaseUrl: "http://127.0.0.1:8008",
+    apiToken: "new-private-token",
+    model: "kev-latest",
+  });
   await command.handler("settings", ctx);
-  assert.equal(readSettings().apiBaseUrl, undefined);
-  assert.equal(readSettings().apiToken, undefined);
+  assert.deepEqual(readSettings(), {
+    ...DEFAULT_SETTINGS,
+    mode: "custom-http",
+    apiToken: "second-private-token",
+    model: "kev-latest",
+  });
+  await command.handler("settings", ctx);
+  assert.deepEqual(readSettings(), {
+    ...DEFAULT_SETTINGS,
+    mode: "custom-http",
+    apiBaseUrl: "http://127.0.0.1:9000",
+    model: "kev-latest",
+  });
+  assert.deepEqual(inputs, [
+    { title: "Custom TypeSafe-compatible server root URL for Custom HTTP endpoint mode (blank = clear)", prefill: undefined },
+    { title: "Custom HTTP token for Custom HTTP endpoint mode (blank = clear; never prefilled)", prefill: undefined },
+    { title: "Decision model (blank = default)", prefill: undefined },
+    { title: "Custom HTTP token for Custom HTTP endpoint mode (blank = clear; never prefilled)", prefill: undefined },
+    { title: "Custom TypeSafe-compatible server root URL for Custom HTTP endpoint mode (blank = clear)", prefill: undefined },
+  ]);
+  assert.equal(selectPlans.length, 0);
+  assert.equal(values.length, 0);
 }));

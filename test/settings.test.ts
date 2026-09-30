@@ -26,13 +26,23 @@ test("settings validate values and persist across loads", () => {
     assert.equal(parseMaxNew("100"), 100);
     assert.equal(parseMaxNew("1.5"), undefined);
     assert.equal(parseMaxNew("101"), undefined);
-    writeSettings({ enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" }, path);
-    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
-    assert.throws(() => writeSettings({ enabled: true, threshold: 2, maxNew: 1, triggerMode: "prompt-only" }, path), /Invalid/);
-    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any }, path), /Invalid/);
-    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request" });
+    writeSettings({ enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" }, path);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" });
+    assert.throws(() => writeSettings({ enabled: true, threshold: 2, maxNew: 1, triggerMode: "prompt-only", mode: "openrouter-jev" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any, mode: "openrouter-jev" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "prompt-only", mode: "unknown" as any }, path), /Invalid/);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" });
     writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3 })); // pre-mode config migrates
-    assert.deepEqual(readSettings(path), { enabled: true, threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools" });
+    assert.deepEqual(readSettings(path), { enabled: true, threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools", mode: "openrouter-jev" });
+    writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3, apiBaseUrl: "http://127.0.0.1:8008" }));
+    assert.deepEqual(readSettings(path), {
+      enabled: true,
+      threshold: 0.8,
+      maxNew: 3,
+      triggerMode: "prompt-and-tools",
+      mode: "custom-http",
+      apiBaseUrl: "http://127.0.0.1:8008",
+    });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -60,7 +70,13 @@ test("TUI settings command saves values and ranking uses them without env vars",
       input: async () => inputs.shift(), notify: (message: string) => notifications.push(message), setWidget: () => {}, setWorkingMessage: () => {},
     }, modelRegistry: { getApiKeyForProvider: async () => "pi-key" } };
     await commands.get("skill-picker")!.handler("settings", ctx);
-    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), { enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "prompt-only" });
+    assert.deepEqual(readSettings(join(dir, "pi-skill-picker-jev.json")), {
+      enabled: true,
+      threshold: 0.9,
+      maxNew: 1,
+      triggerMode: "prompt-only",
+      mode: "openrouter-jev",
+    });
     assert.match(notifications.join(" "), /number between 0 and 1/);
     await handlers.get("session_start")!({}, ctx);
     let decisionCalls = 0;

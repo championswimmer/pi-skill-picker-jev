@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
-import { writeSettings, type TriggerMode } from "../src/settings.ts";
+import { DEFAULT_SETTINGS, writeSettings, type TriggerMode } from "../src/settings.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -18,7 +18,7 @@ async function countDecisionCalls(triggerMode: TriggerMode): Promise<number> {
   const oldFetch = globalThis.fetch;
   try {
     process.env.PI_CODING_AGENT_DIR = dir;
-    writeSettings({ enabled: true, threshold: 0.75, maxNew: 6, triggerMode });
+    writeSettings({ ...DEFAULT_SETTINGS, threshold: 0.75, triggerMode });
     let calls = 0;
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       calls++;

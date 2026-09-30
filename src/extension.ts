@@ -4,7 +4,17 @@ import { decideSkills } from "./decision.ts";
 import { TriggerTracker } from "./triggers.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory, type SkillAddition } from "./history.ts";
 import { showTurnSkills } from "./history-ui.ts";
-import { TRIGGER_LABELS, TRIGGER_MODES, parseApiBaseUrl, parseMaxNew, parseThreshold, readSettings, writeSettings } from "./settings.ts";
+import {
+  CLASSIFIER_MODE_LABELS,
+  CLASSIFIER_MODES,
+  TRIGGER_LABELS,
+  TRIGGER_MODES,
+  parseApiBaseUrl,
+  parseMaxNew,
+  parseThreshold,
+  readSettings,
+  writeSettings,
+} from "./settings.ts";
 import { readAllowlist } from "./always-allowed.ts";
 import { showAlwaysAllowed } from "./always-allowed-ui.ts";
 
@@ -72,11 +82,15 @@ export default function skillPicker(pi: ExtensionAPI) {
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
+        const modeOption = `Classifier mode: ${CLASSIFIER_MODE_LABELS[settings.mode]}`;
         const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
-        const baseOption = `TypeSafe API base URL: ${settings.apiBaseUrl ?? "OpenRouter (default)"}`;
-        const tokenOption = `API token: ${settings.apiToken ? "configured (hidden)" : settings.apiBaseUrl ? "none (custom server)" : "Pi OpenRouter authentication"}`;
+        const customHttpActive = settings.mode === "custom-http";
+        const baseOptionLabel = customHttpActive ? "Custom HTTP base URL" : "Custom HTTP base URL (used by Custom HTTP endpoint mode)";
+        const tokenOptionLabel = customHttpActive ? "Custom HTTP token" : "Custom HTTP token (used by Custom HTTP endpoint mode)";
+        const baseOption = `${baseOptionLabel}: ${settings.apiBaseUrl ?? "not set"}`;
+        const tokenOption = `${tokenOptionLabel}: ${settings.apiToken ? "configured (hidden)" : "not set"}`;
         const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
-        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, triggerOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
+        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, triggerOption, modeOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
         if (!choice || choice === "Done") break;
         if (choice === enabledOption) {
           const updated = { ...settings, enabled: !settings.enabled };
@@ -87,12 +101,33 @@ export default function skillPicker(pi: ExtensionAPI) {
           } catch (error) { ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error"); }
           continue;
         }
+        if (choice === modeOption) {
+          const picked = await ctx.ui.select("Classifier mode", CLASSIFIER_MODES.map((mode) => CLASSIFIER_MODE_LABELS[mode]));
+          const mode = CLASSIFIER_MODES.find((value) => CLASSIFIER_MODE_LABELS[value] === picked);
+          if (mode) {
+            try {
+              const updated = { ...settings, mode };
+              if (mode !== "custom-http") {
+                delete updated.apiBaseUrl;
+                delete updated.apiToken;
+              }
+              writeSettings(updated);
+              settings = updated;
+              ctx.ui.notify(mode === "custom-http"
+                ? "Skill picker settings saved. Configure the Custom HTTP base URL and token below if needed."
+                : "Skill picker settings saved. Cleared saved Custom HTTP endpoint settings.", "info");
+            } catch (error) {
+              ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
+            }
+          }
+          continue;
+        }
         if (choice === baseOption || choice === tokenOption || choice === modelOption) {
           const key = choice === baseOption ? "apiBaseUrl" : choice === tokenOption ? "apiToken" : "model";
           if (key === "apiToken") ctx.ui.notify("Token input is visible while typing; saved only in your agent settings (mode 0600).", "warning");
           const value = await ctx.ui.input(
-            key === "apiBaseUrl" ? "TypeSafe server root URL (blank = OpenRouter)" :
-              key === "apiToken" ? "API token override (blank = clear; never prefilled)" : "Decision model (blank = default)",
+            key === "apiBaseUrl" ? "Custom TypeSafe-compatible server root URL for Custom HTTP endpoint mode (blank = clear)" :
+              key === "apiToken" ? "Custom HTTP token for Custom HTTP endpoint mode (blank = clear; never prefilled)" : "Decision model (blank = default)",
             key === "apiToken" ? undefined : settings[key],
           );
           if (value === undefined) continue;
@@ -102,6 +137,7 @@ export default function skillPicker(pi: ExtensionAPI) {
             continue;
           }
           const updated = { ...settings };
+          if (key === "apiBaseUrl" || key === "apiToken") updated.mode = "custom-http";
           if (trimmed) updated[key] = key === "apiBaseUrl" ? parseApiBaseUrl(trimmed)! : trimmed;
           else delete updated[key];
           // A token belongs to the endpoint it was configured for.
@@ -109,7 +145,11 @@ export default function skillPicker(pi: ExtensionAPI) {
           try {
             writeSettings(updated);
             settings = updated;
-            ctx.ui.notify(key === "apiBaseUrl" ? "Settings saved. Endpoint changes clear the token; configure it next if needed." : "Skill picker settings saved.", "info");
+            ctx.ui.notify(key === "apiBaseUrl"
+              ? "Settings saved. Switched classifier mode to Custom HTTP endpoint. Endpoint changes clear the token; configure it next if needed."
+              : key === "apiToken"
+                ? "Skill picker settings saved. Switched classifier mode to Custom HTTP endpoint."
+                : "Skill picker settings saved.", "info");
           } catch (error) {
             ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
           }

@@ -52,7 +52,7 @@ You can also use the built-in **Pi classifier** mode or point the extension at y
 1. Start Pi inside a project that already contains Pi skills.
 2. Ask for help normally.
 3. Open `/skill-picker history` to see which skills were added.
-4. Open `/skill-picker settings` if you want to make it more or less selective.
+4. Open `/skill-picker settings` if you want to make it more or less selective, or keep the picker off for small skill repos.
 
 The extension uses the skills Pi has already discovered. It does **not** install or generate skills for you.
 
@@ -71,12 +71,14 @@ In each case, you should see a small, task-specific set of skills show up in `/s
 ## Everyday commands
 
 - `/skill-picker` — open the picker menu.
-- `/skill-picker settings` — tune threshold, max new skills, trigger timing, classifier mode, and project allowlist.
+- `/skill-picker settings` — tune threshold, max new skills, minimum repo skills, trigger timing, classifier mode, and project allowlist.
 - `/skill-picker history` — inspect which skills were added during this session.
 - `/skill-picker on` / `/skill-picker off` — enable or disable the extension quickly.
 - `/skill:name` — manually invoke a skill if you want to bypass automatic selection.
 
 Skills selected during a session stay available for the rest of that session. A new Pi session starts fresh.
+
+By default, the picker only runs in repos where Pi has loaded at least `30` model-invocable skills after deduping by name. Set **Minimum repo skills** to `0` if you want it to run even in smaller skill catalogs.
 
 ## What gets sent
 

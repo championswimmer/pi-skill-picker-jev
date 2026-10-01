@@ -11,6 +11,7 @@ import {
   TRIGGER_MODES,
   parseApiBaseUrl,
   parseMaxNew,
+  parseMinSkills,
   parseThreshold,
   readSettings,
   writeSettings,
@@ -35,6 +36,7 @@ export function renderSkills(skills: Skill[]): string {
 export default function skillPicker(pi: ExtensionAPI) {
   const selected = new Map<string, Skill>();
   let inventory: Skill[] = [];
+  let pickerActiveForTurn = false;
   let skipFirstRequest = false;
   let lastPrompt = "";
   const triggers = new TriggerTracker();
@@ -52,6 +54,7 @@ export default function skillPicker(pi: ExtensionAPI) {
     requestNumber = 0;
     selected.clear();
     inventory = [];
+    pickerActiveForTurn = false;
     lastPrompt = "";
     triggers.reset();
     skipFirstRequest = false;
@@ -81,6 +84,7 @@ export default function skillPicker(pi: ExtensionAPI) {
         const enabledOption = `Skill picker: ${settings.enabled ? "On" : "Off"}`;
         const thresholdOption = `Threshold: ${settings.threshold}`;
         const maxNewOption = `Max new skills: ${settings.maxNew}`;
+        const minSkillsOption = `Minimum repo skills: ${settings.minSkills}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
         const modeOption = `Classifier mode: ${CLASSIFIER_MODE_LABELS[settings.mode]}`;
         const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
@@ -90,7 +94,7 @@ export default function skillPicker(pi: ExtensionAPI) {
         const baseOption = `${baseOptionLabel}: ${settings.apiBaseUrl ?? "not set"}`;
         const tokenOption = `${tokenOptionLabel}: ${settings.apiToken ? "configured (hidden)" : "not set"}`;
         const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
-        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, triggerOption, modeOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
+        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, minSkillsOption, triggerOption, modeOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
         if (!choice || choice === "Done") break;
         if (choice === enabledOption) {
           const updated = { ...settings, enabled: !settings.enabled };
@@ -182,19 +186,34 @@ export default function skillPicker(pi: ExtensionAPI) {
           }
           continue;
         }
-        const threshold = choice === thresholdOption;
+        const numericSetting = choice === thresholdOption ? {
+          key: "threshold" as const,
+          prompt: "Normalized usefulness rating cutoff (0–1; default 0.625)",
+          value: settings.threshold,
+          parse: parseThreshold,
+          warning: "Enter a number between 0 and 1.",
+        } : choice === maxNewOption ? {
+          key: "maxNew" as const,
+          prompt: "Maximum new skills (0–100)",
+          value: settings.maxNew,
+          parse: parseMaxNew,
+          warning: "Enter a whole number from 0 to 100.",
+        } : {
+          key: "minSkills" as const,
+          prompt: "Minimum repo skills before the picker runs (0 = disable this gate; counts dedupe names and exclude disableModelInvocation)",
+          value: settings.minSkills,
+          parse: parseMinSkills,
+          warning: "Enter a whole number 0 or greater. Use 0 to disable the gate.",
+        };
         for (;;) {
-          const value = await ctx.ui.input(
-            threshold ? "Normalized usefulness rating cutoff (0–1; default 0.625)" : "Maximum new skills (0–100)",
-            String(threshold ? settings.threshold : settings.maxNew),
-          );
+          const value = await ctx.ui.input(numericSetting.prompt, String(numericSetting.value));
           if (value === undefined) break;
-          const parsed = threshold ? parseThreshold(value) : parseMaxNew(value);
+          const parsed = numericSetting.parse(value);
           if (parsed === undefined) {
-            ctx.ui.notify(threshold ? "Enter a number between 0 and 1." : "Enter a whole number from 0 to 100.", "warning");
+            ctx.ui.notify(numericSetting.warning, "warning");
             continue;
           }
-          const updated = { ...settings, [threshold ? "threshold" : "maxNew"]: parsed };
+          const updated = { ...settings, [numericSetting.key]: parsed };
           try {
             writeSettings(updated);
             settings = updated;
@@ -261,6 +280,7 @@ export default function skillPicker(pi: ExtensionAPI) {
     lastPrompt = event.prompt;
     if (!settings.enabled) {
       inventory = [];
+      pickerActiveForTurn = false;
       selected.clear();
       skipFirstRequest = true;
       triggers.reset();
@@ -277,6 +297,12 @@ export default function skillPicker(pi: ExtensionAPI) {
       names.add(skill.name);
       return true;
     });
+    pickerActiveForTurn = settings.minSkills === 0 || inventory.length >= settings.minSkills;
+    if (!pickerActiveForTurn) {
+      skipFirstRequest = true;
+      triggers.reset();
+      return;
+    }
     for (const [name, skill] of selected) {
       if (!inventory.some((available) => available.name === name && available.filePath === skill.filePath)) selected.delete(name);
     }
@@ -302,7 +328,7 @@ export default function skillPicker(pi: ExtensionAPI) {
   });
 
   pi.on("context_with_system", async (event, ctx) => {
-    if (!settings.enabled) return;
+    if (!settings.enabled || !pickerActiveForTurn) return;
     if (skipFirstRequest) {
       skipFirstRequest = false;
       triggers.snapshot(event.messages, lastPrompt);

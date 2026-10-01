@@ -87,7 +87,7 @@ test("live Kev: picker, extension settings, fail-closed auth and Noul/Score comp
     const oldDir = process.env.PI_CODING_AGENT_DIR;
     try {
       process.env.PI_CODING_AGENT_DIR = dir;
-      writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: base, apiToken: token || undefined, model, maxNew: 1 });
+      writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: base, apiToken: token || undefined, model, maxNew: 1, minSkills: 0 });
       const handlers = new Map<string, Function>();
       const pi = { on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {}, appendEntry: () => {} };
       skillPicker(pi as any);
@@ -99,7 +99,7 @@ test("live Kev: picker, extension settings, fail-closed auth and Noul/Score comp
       assert.deepEqual(event.systemPromptOptions.skills.map((s) => s.name), ["postgres-migrations"]);
       assert.deepEqual(event.systemPromptOptions.guidelines, ["Preserve this guideline"]);
       if (token) {
-        writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: base, apiToken: "deliberately-wrong-token", model });
+        writeSettings({ ...DEFAULT_SETTINGS, mode: "custom-http", apiBaseUrl: base, apiToken: "deliberately-wrong-token", model, minSkills: 0 });
         const retry = { prompt: cases[1].task, systemPromptOptions: { skills: candidates } };
         await handlers.get("before_agent_start")!(retry, ctx);
         assert.deepEqual(retry.systemPromptOptions.skills.map((s) => s.name), ["postgres-migrations"], "failed auth must retain only already selected skills");

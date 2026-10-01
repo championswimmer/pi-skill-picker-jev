@@ -6,6 +6,7 @@ import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
 import { ADDITION_ENTRY, TURN_ENTRY, groupHistoryByTurn, restoreHistory } from "../src/history.ts";
+import { DEFAULT_SETTINGS, writeSettings } from "../src/settings.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -33,6 +34,7 @@ test("/skill-picker history shows per-turn additions and restores the active bra
   const agentDir = mkdtempSync(join(tmpdir(), "skill-picker-history-"));
   process.env.PI_CODING_AGENT_DIR = agentDir;
   try {
+    writeSettings({ ...DEFAULT_SETTINGS, minSkills: 0 });
     let branch: Array<{ type: string; customType: string; data: unknown }> = [];
     const handlers = new Map<string, Function>();
     const commands = new Map<string, { handler: Function; getArgumentCompletions: Function }>();

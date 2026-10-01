@@ -11,6 +11,7 @@ Important behavior:
 - candidate skills come from `event.systemPromptOptions.skills`,
 - duplicate names are removed,
 - skills with `disableModelInvocation` are excluded,
+- the picker can be skipped intentionally when the filtered repo skill count is below `minSkills`,
 - Pi's other prompt sections stay intact,
 - and failures do **not** reveal the full catalog.
 
@@ -40,10 +41,13 @@ Defaults:
 - `enabled: true`
 - `threshold: 0.625`
 - `maxNew: 6`
+- `minSkills: 30`
 - `triggerMode: "prompt-and-tools"`
 - `mode: "openrouter-jev"`
 
 Optional fields store classifier mode details such as `apiBaseUrl`, `apiToken`, and `model`.
+
+`minSkills` is an intentional gate, not a failure path: when Pi loads fewer than that many deduped, model-invocable skills for a turn, the extension leaves Pi's original skills list intact and does not rank or patch the skills section for that turn.
 
 ### Project allowlist
 

@@ -6,8 +6,9 @@ import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
 import { allowlistPath, readAllowlist, writeAllowlist } from "../src/always-allowed.ts";
-import { rankSkills } from "../src/picker.ts";
 import { showAlwaysAllowed } from "../src/always-allowed-ui.ts";
+import { rankSkills } from "../src/picker.ts";
+import { DEFAULT_SETTINGS, writeSettings } from "../src/settings.ts";
 
 const skill = (name: string, disabled = false): Skill => ({
   name, description: `${name} description`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -27,7 +28,10 @@ test("allowlist persists only names per project and ignores malformed files", ()
 
 test("always allowed skills stay visible without credentials or Jev and do not expose other candidates", async () => {
   const dir = mkdtempSync(join(tmpdir(), "jev-allowed-ext-"));
+  const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
   try {
+    process.env.PI_CODING_AGENT_DIR = dir;
+    writeSettings({ ...DEFAULT_SETTINGS, minSkills: 0 });
     writeAllowlist(dir, ["keep", "disabled", "stale"]);
     const handlers = new Map<string, Function>();
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {}, appendEntry: () => {} } as any);
@@ -44,7 +48,11 @@ test("always allowed skills stay visible without credentials or Jev and do not e
     writeAllowlist(dir, []);
     await handlers.get("before_agent_start")!({ prompt: "anything", systemPromptOptions: options }, ctx);
     assert.deepEqual(options.skills, []);
-  } finally { rmSync(dir, { recursive: true, force: true }); }
+  } finally {
+    if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("allowlist rows show cached skill file character counts with k notation", async () => {

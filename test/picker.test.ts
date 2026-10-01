@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import type { Skill } from "@earendil-works/pi-coding-agent";
-import { rankSkills, transcriptText, type DecisionCallUsage } from "../src/picker.ts";
 import skillPicker, { renderSkills } from "../src/extension.ts";
+import { rankSkills, transcriptText, type DecisionCallUsage } from "../src/picker.ts";
+import { DEFAULT_SETTINGS, writeSettings } from "../src/settings.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -126,8 +130,12 @@ test("a shared ranking deadline aborts in-flight Jev batches and skips queued ba
 test("filters only Pi's loaded skills and adds newly relevant Pi skills", async () => {
   const oldKey = process.env.OPENROUTER_API_KEY;
   const oldFetch = globalThis.fetch;
+  const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
+  const agentDir = mkdtempSync(join(tmpdir(), "jev-picker-"));
   try {
     delete process.env.OPENROUTER_API_KEY;
+    process.env.PI_CODING_AGENT_DIR = agentDir;
+    writeSettings({ ...DEFAULT_SETTINGS, minSkills: 0 });
     globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
       const body = JSON.parse(init.body as string);
       const answers = Object.fromEntries(Object.entries(body.questions).map(([id, q]: [string, any]) => {
@@ -168,6 +176,8 @@ test("filters only Pi's loaded skills and adds newly relevant Pi skills", async 
   } finally {
     globalThis.fetch = oldFetch;
     if (oldKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldKey;
+    if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR; else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
+    rmSync(agentDir, { recursive: true, force: true });
   }
 });
 

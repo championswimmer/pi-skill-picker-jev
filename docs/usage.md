@@ -17,6 +17,7 @@ Open `/skill-picker settings` and adjust these options:
 | --- | --- | --- |
 | Threshold | `0.625` | Minimum usefulness score before a skill is added. Lower = more skills, higher = fewer skills. |
 | Max new skills | `6` | Maximum number of newly added skills per decision. |
+| Minimum repo skills | `30` | Do not use the picker unless Pi loaded at least this many model-invocable skills for the repo. Set to `0` to disable the gate. |
 | When to pick | Prompt + tool results | Re-rank only from your prompt, or also after tools produce new text. |
 | Always allowed skills | None | Skills that should stay available in this project even if the ranker does not pick them. |
 
@@ -24,11 +25,14 @@ A good mental model:
 
 - **Lower threshold** if the picker feels too conservative.
 - **Higher threshold** if it keeps surfacing optional or distracting skills.
+- **Minimum repo skills = 0** if you want the picker to run even in small skill repos.
 - **Prompt only** if you want fewer model calls.
 - **Prompt + tool results** if tasks often change shape after running tools.
 - **Every changed request** if you want the picker to react as aggressively as possible.
 
 Skills already selected are not removed during the same Pi session.
+
+The minimum-skill gate counts only the skills Pi already loaded for the turn, after duplicate names are removed and `disableModelInvocation` skills are excluded.
 
 ## Keep a few skills always available
 

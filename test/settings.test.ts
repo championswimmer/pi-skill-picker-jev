@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
-import { DEFAULT_SETTINGS, parseMaxNew, parseThreshold, readSettings, writeSettings } from "../src/settings.ts";
+import { DEFAULT_SETTINGS, parseMaxNew, parseMinSkills, parseThreshold, readSettings, writeSettings } from "../src/settings.ts";
 
 function skill(name: string): Skill {
   return { name, description: `${name} expertise`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
@@ -26,19 +26,25 @@ test("settings validate values and persist across loads", () => {
     assert.equal(parseMaxNew("100"), 100);
     assert.equal(parseMaxNew("1.5"), undefined);
     assert.equal(parseMaxNew("101"), undefined);
-    writeSettings({ enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" }, path);
-    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" });
-    assert.throws(() => writeSettings({ enabled: true, threshold: 2, maxNew: 1, triggerMode: "prompt-only", mode: "openrouter-jev" }, path), /Invalid/);
-    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "unknown" as any, mode: "openrouter-jev" }, path), /Invalid/);
-    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, triggerMode: "prompt-only", mode: "unknown" as any }, path), /Invalid/);
-    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, triggerMode: "every-request", mode: "pi-classifier" });
+    assert.equal(parseMinSkills("0"), 0);
+    assert.equal(parseMinSkills("30"), 30);
+    assert.equal(parseMinSkills("1.5"), undefined);
+    assert.equal(parseMinSkills("-1"), undefined);
+    writeSettings({ enabled: false, threshold: 0.91, maxNew: 2, minSkills: 31, triggerMode: "every-request", mode: "pi-classifier" }, path);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, minSkills: 31, triggerMode: "every-request", mode: "pi-classifier" });
+    assert.throws(() => writeSettings({ enabled: true, threshold: 2, maxNew: 1, minSkills: 30, triggerMode: "prompt-only", mode: "openrouter-jev" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, minSkills: -1, triggerMode: "prompt-only", mode: "openrouter-jev" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, minSkills: 30, triggerMode: "unknown" as any, mode: "openrouter-jev" }, path), /Invalid/);
+    assert.throws(() => writeSettings({ enabled: true, threshold: 0.9, maxNew: 1, minSkills: 30, triggerMode: "prompt-only", mode: "unknown" as any }, path), /Invalid/);
+    assert.deepEqual(readSettings(path), { enabled: false, threshold: 0.91, maxNew: 2, minSkills: 31, triggerMode: "every-request", mode: "pi-classifier" });
     writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3 })); // pre-mode config migrates
-    assert.deepEqual(readSettings(path), { enabled: true, threshold: 0.8, maxNew: 3, triggerMode: "prompt-and-tools", mode: "openrouter-jev" });
-    writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3, apiBaseUrl: "http://127.0.0.1:8008" }));
+    assert.deepEqual(readSettings(path), { enabled: true, threshold: 0.8, maxNew: 3, minSkills: 30, triggerMode: "prompt-and-tools", mode: "openrouter-jev" });
+    writeFileSync(path, JSON.stringify({ threshold: 0.8, maxNew: 3, minSkills: 0, apiBaseUrl: "http://127.0.0.1:8008" }));
     assert.deepEqual(readSettings(path), {
       enabled: true,
       threshold: 0.8,
       maxNew: 3,
+      minSkills: 0,
       triggerMode: "prompt-and-tools",
       mode: "custom-http",
       apiBaseUrl: "http://127.0.0.1:8008",
@@ -62,8 +68,8 @@ test("TUI settings command saves values and ranking uses them without env vars",
     skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler),
       registerCommand: (name: string, command: { handler: Function }) => commands.set(name, command),
       appendEntry: (customType: string, data: unknown) => branch.push({ type: "custom", customType, data }) } as any);
-    const choices = ["Threshold: 0.625", "Max new skills: 6", "When to pick: Prompt + tool results", "Prompt only", "Done"];
-    const inputs = ["bad", "0.9", "1"];
+    const choices = ["Threshold: 0.625", "Max new skills: 6", "Minimum repo skills: 30", "When to pick: Prompt + tool results", "Prompt only", "Done"];
+    const inputs = ["bad", "0.9", "1", "0"];
     const notifications: string[] = [];
     const ctx = { hasUI: true, isIdle: () => true, sessionManager: { getBranch: () => branch }, ui: {
       select: async (_title: string, options: string[]) => { const choice = choices.shift(); assert.ok(!choice || options.includes(choice)); return choice; },
@@ -74,6 +80,7 @@ test("TUI settings command saves values and ranking uses them without env vars",
       enabled: true,
       threshold: 0.9,
       maxNew: 1,
+      minSkills: 0,
       triggerMode: "prompt-only",
       mode: "openrouter-jev",
     });

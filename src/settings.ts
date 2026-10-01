@@ -25,6 +25,7 @@ export interface PickerSettings {
   enabled: boolean;
   threshold: number;
   maxNew: number;
+  minSkills: number;
   triggerMode: TriggerMode;
   mode: ClassifierMode;
   /** TypeSafe-compatible server root (without /v1/systemone). */
@@ -38,6 +39,7 @@ export const DEFAULT_SETTINGS: PickerSettings = {
   enabled: true,
   threshold: 0.625,
   maxNew: 6,
+  minSkills: 30,
   triggerMode: "prompt-and-tools",
   mode: "openrouter-jev",
 };
@@ -68,6 +70,13 @@ export function parseMaxNew(value: string): number | undefined {
   return Number.isSafeInteger(n) && n <= 100 ? n : undefined;
 }
 
+export function parseMinSkills(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return undefined;
+  const n = Number(trimmed);
+  return Number.isSafeInteger(n) ? n : undefined;
+}
+
 export function parseApiBaseUrl(value: string): string | undefined {
   try {
     const url = new URL(value.trim());
@@ -80,7 +89,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
   try {
     const data: unknown = JSON.parse(readFileSync(path, "utf8"));
     if (!data || typeof data !== "object") return { ...DEFAULT_SETTINGS };
-    const { enabled, threshold, maxNew, triggerMode, mode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
+    const { enabled, threshold, maxNew, minSkills, triggerMode, mode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
     // Keep invalid endpoints: request validation must fail closed, not
     // silently send a custom server's token/task to OpenRouter.
     const optional = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
@@ -93,6 +102,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
       enabled: typeof enabled === "boolean" ? enabled : DEFAULT_SETTINGS.enabled,
       threshold: typeof threshold === "number" ? parseThreshold(String(threshold)) ?? DEFAULT_SETTINGS.threshold : DEFAULT_SETTINGS.threshold,
       maxNew: typeof maxNew === "number" ? parseMaxNew(String(maxNew)) ?? DEFAULT_SETTINGS.maxNew : DEFAULT_SETTINGS.maxNew,
+      minSkills: typeof minSkills === "number" ? parseMinSkills(String(minSkills)) ?? DEFAULT_SETTINGS.minSkills : DEFAULT_SETTINGS.minSkills,
       triggerMode: isTriggerMode(triggerMode) ? triggerMode : DEFAULT_SETTINGS.triggerMode,
       mode: classifierMode,
       ...(apiBaseUrl !== undefined ? { apiBaseUrl: typeof apiBaseUrl === "string" ? apiBaseUrl.trim() : "invalid:base-url" } : {}),
@@ -104,7 +114,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
 
 export function writeSettings(settings: PickerSettings, path = getSettingsPath()): void {
   if (typeof settings.enabled !== "boolean" || parseThreshold(String(settings.threshold)) === undefined || parseMaxNew(String(settings.maxNew)) === undefined ||
-    !isTriggerMode(settings.triggerMode) || !isClassifierMode(settings.mode) ||
+    parseMinSkills(String(settings.minSkills)) === undefined || !isTriggerMode(settings.triggerMode) || !isClassifierMode(settings.mode) ||
     (settings.apiBaseUrl !== undefined && !parseApiBaseUrl(settings.apiBaseUrl)) ||
     [settings.apiToken, settings.model].some((value) => value !== undefined &&
       (typeof value !== "string" || !value.trim() || /[\r\n]/.test(value)))) {

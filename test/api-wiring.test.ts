@@ -115,21 +115,38 @@ test("API settings UI keeps custom-http mode, labels, and saved values coherent"
   skillPicker({ on: () => {}, registerCommand: (_name: string, options: any) => { command = options; } } as any);
   const values = ["http://127.0.0.1:8008/", "new-private-token", "kev-latest", "second-private-token", "http://127.0.0.1:9000/"];
   const inputs: { title: string; prefill: unknown }[] = [];
+  const hidesEndpoint = (options: string[]) => {
+    assert.equal(options.some((s) => s.startsWith("Custom HTTP base URL")), false);
+    assert.equal(options.some((s) => s.startsWith("Custom HTTP token")), false);
+    assert.equal(options.some((s) => s.startsWith("Decision model:")), true);
+  };
   const selectPlans: Array<{ title: string; pick: (options: string[]) => string | undefined }> = [
     {
       title: "Skill picker settings",
       pick: (options) => {
         assert.ok(options.every((s) => !s.includes("private-token")));
         assert.ok(options.includes("Classifier mode: Hosted OpenRouter / Jev"));
-        assert.ok(options.includes("Custom HTTP base URL (used by Custom HTTP endpoint mode): not set"));
-        assert.ok(options.includes("Custom HTTP token (used by Custom HTTP endpoint mode): configured (hidden)"));
-        return options.find((s) => s.startsWith("Custom HTTP base URL (used by Custom HTTP endpoint mode):"));
+        hidesEndpoint(options);
+        return options.find((s) => s.startsWith("Classifier mode:"));
       },
+    },
+    {
+      title: "Classifier mode",
+      pick: (options) => options.find((s) => s === "Custom HTTP endpoint"),
     },
     {
       title: "Skill picker settings",
       pick: (options) => {
         assert.ok(options.includes("Classifier mode: Custom HTTP endpoint"));
+        assert.ok(options.includes("Custom HTTP base URL: not set"));
+        assert.ok(options.includes("Custom HTTP token: configured (hidden)"));
+        assert.ok(options.every((s) => !s.includes("private-token")));
+        return options.find((s) => s.startsWith("Custom HTTP base URL:"));
+      },
+    },
+    {
+      title: "Skill picker settings",
+      pick: (options) => {
         assert.ok(options.includes("Custom HTTP base URL: http://127.0.0.1:8008"));
         assert.ok(options.includes("Custom HTTP token: not set"));
         return options.find((s) => s.startsWith("Custom HTTP token:"));
@@ -152,23 +169,29 @@ test("API settings UI keeps custom-http mode, labels, and saved values coherent"
       title: "Skill picker settings",
       pick: (options) => {
         assert.ok(options.includes("Classifier mode: Pi classifier"));
-        assert.ok(options.includes("Custom HTTP base URL (used by Custom HTTP endpoint mode): not set"));
-        assert.ok(options.includes("Custom HTTP token (used by Custom HTTP endpoint mode): not set"));
-        return options.find((s) => s.startsWith("Custom HTTP token (used by Custom HTTP endpoint mode):"));
+        hidesEndpoint(options);
+        return options.find((s) => s.startsWith("Classifier mode:"));
       },
+    },
+    {
+      title: "Classifier mode",
+      pick: (options) => options.find((s) => s === "Custom HTTP endpoint"),
     },
     {
       title: "Skill picker settings",
       pick: (options) => {
         assert.ok(options.includes("Classifier mode: Custom HTTP endpoint"));
-        assert.ok(options.includes("Custom HTTP token: configured (hidden)"));
-        return "Done";
+        assert.ok(options.includes("Custom HTTP base URL: not set"));
+        assert.ok(options.includes("Custom HTTP token: not set"));
+        return options.find((s) => s.startsWith("Custom HTTP token:"));
       },
     },
+    { title: "Skill picker settings", pick: () => "Done" },
     {
       title: "Skill picker settings",
       pick: (options) => {
         assert.ok(options.includes("Custom HTTP token: configured (hidden)"));
+        assert.ok(options.every((s) => !s.includes("private-token")));
         return options.find((s) => s.startsWith("Custom HTTP base URL:"));
       },
     },

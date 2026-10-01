@@ -128,7 +128,7 @@ How to use it:
 1. Start your service and note its root URL.
 2. Open `/skill-picker settings`.
 3. Set **Classifier mode** to **Custom HTTP endpoint**.
-4. Configure:
+4. **Custom HTTP base URL** and **Custom HTTP token** appear only in this mode. Configure:
    1. **Custom HTTP base URL** — for example `http://127.0.0.1:8008`.
    2. **Custom HTTP token** — only if that endpoint requires one. Leave it blank for unauthenticated local servers.
    3. **Decision model** — optional; for Kev a common value is `kev-latest`.

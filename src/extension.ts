@@ -89,12 +89,14 @@ export default function skillPicker(pi: ExtensionAPI) {
         const modeOption = `Classifier mode: ${CLASSIFIER_MODE_LABELS[settings.mode]}`;
         const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
         const customHttpActive = settings.mode === "custom-http";
-        const baseOptionLabel = customHttpActive ? "Custom HTTP base URL" : "Custom HTTP base URL (used by Custom HTTP endpoint mode)";
-        const tokenOptionLabel = customHttpActive ? "Custom HTTP token" : "Custom HTTP token (used by Custom HTTP endpoint mode)";
-        const baseOption = `${baseOptionLabel}: ${settings.apiBaseUrl ?? "not set"}`;
-        const tokenOption = `${tokenOptionLabel}: ${settings.apiToken ? "configured (hidden)" : "not set"}`;
+        const baseOption = `Custom HTTP base URL: ${settings.apiBaseUrl ?? "not set"}`;
+        const tokenOption = `Custom HTTP token: ${settings.apiToken ? "configured (hidden)" : "not set"}`;
         const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
-        const choice = await ctx.ui.select("Skill picker settings", [enabledOption, thresholdOption, maxNewOption, minSkillsOption, triggerOption, modeOption, allowedOption, baseOption, tokenOption, modelOption, "Done"]);
+        const choice = await ctx.ui.select("Skill picker settings", [
+          enabledOption, thresholdOption, maxNewOption, minSkillsOption, triggerOption, modeOption, allowedOption,
+          ...(customHttpActive ? [baseOption, tokenOption] : []),
+          modelOption, "Done",
+        ]);
         if (!choice || choice === "Done") break;
         if (choice === enabledOption) {
           const updated = { ...settings, enabled: !settings.enabled };
@@ -118,7 +120,7 @@ export default function skillPicker(pi: ExtensionAPI) {
               writeSettings(updated);
               settings = updated;
               ctx.ui.notify(mode === "custom-http"
-                ? "Skill picker settings saved. Configure the Custom HTTP base URL and token below if needed."
+                ? "Skill picker settings saved. Custom HTTP base URL and token are now in this menu."
                 : "Skill picker settings saved. Cleared saved Custom HTTP endpoint settings.", "info");
             } catch (error) {
               ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
@@ -141,7 +143,6 @@ export default function skillPicker(pi: ExtensionAPI) {
             continue;
           }
           const updated = { ...settings };
-          if (key === "apiBaseUrl" || key === "apiToken") updated.mode = "custom-http";
           if (trimmed) updated[key] = key === "apiBaseUrl" ? parseApiBaseUrl(trimmed)! : trimmed;
           else delete updated[key];
           // A token belongs to the endpoint it was configured for.
@@ -150,10 +151,8 @@ export default function skillPicker(pi: ExtensionAPI) {
             writeSettings(updated);
             settings = updated;
             ctx.ui.notify(key === "apiBaseUrl"
-              ? "Settings saved. Switched classifier mode to Custom HTTP endpoint. Endpoint changes clear the token; configure it next if needed."
-              : key === "apiToken"
-                ? "Skill picker settings saved. Switched classifier mode to Custom HTTP endpoint."
-                : "Skill picker settings saved.", "info");
+              ? "Settings saved. Endpoint changes clear the token; configure it next if needed."
+              : "Skill picker settings saved.", "info");
           } catch (error) {
             ctx.ui.notify(`Could not save skill picker settings: ${String(error)}`, "error");
           }

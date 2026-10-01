@@ -21,6 +21,8 @@ In practice, that usually means **after a batch of tool calls finishes and Pi is
 
 ## Lifecycle overview
 
+Color key: blue = Pi or external inputs, purple = extension control, gray = policy or trigger checks, green = ranking or active selection, amber = intentional skip or reuse, red = branch or request persistence.
+
 ```mermaid
 flowchart TD
   A["session_start or session_tree\nRestore branch history\nReset picker state"] --> B["before_agent_start\nRead settings\nCapture lastPrompt"]
@@ -39,6 +41,20 @@ flowchart TD
   M -->|Yes| O["Build bounded transcriptText context\nRank pending skills\nRecord additions for this request"]
   N --> P["Patch only the skills section\nfor this request"]
   O --> P
+
+  classDef input fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E;
+  classDef control fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95;
+  classDef policy fill:#F3F4F6,stroke:#6B7280,color:#111827;
+  classDef active fill:#DCFCE7,stroke:#16A34A,color:#14532D;
+  classDef bypass fill:#FEF3C7,stroke:#D97706,color:#78350F;
+  classDef persist fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D;
+
+  class A input;
+  class B,E,K control;
+  class C,F,L,M policy;
+  class D,G,N bypass;
+  class H persist;
+  class I,J,O,P active;
 ```
 
 ## Timing: initial turn setup
@@ -47,24 +63,36 @@ The **first** skill-picking pass happens before the first model request of the t
 
 ```mermaid
 sequenceDiagram
-  participant User
-  participant Pi as Pi core
-  participant Ext as Skill picker extension
-  participant Ranker as Decision backend
-  participant Tracker as TriggerTracker
+  box rgba(224, 242, 254, 0.45) Turn input
+    actor User
+    participant Pi as Pi core
+  end
+  box rgba(245, 243, 255, 0.55) Skill picker extension
+    participant Ext as Skill picker extension
+  end
+  box rgba(220, 252, 231, 0.55) Ranking backend
+    participant Ranker as Decision backend
+  end
+  box rgba(243, 244, 246, 0.60) Trigger tracking
+    participant Tracker as TriggerTracker
+  end
 
   User->>Pi: New turn / prompt
   Pi->>Ext: before_agent_start(prompt, discovered Pi skills)
   Ext->>Ext: Read settings and build eligible inventory
   alt picker disabled or below minSkills gate
-    Ext-->>Pi: Leave Pi's original skill catalog unchanged
+    rect rgba(245, 158, 11, 0.10)
+      Ext-->>Pi: Leave Pi's original skill catalog unchanged
+    end
   else picker active
     Ext->>Ext: Restore previously selected and always-allowed skills
     Ext->>Pi: Replace visible skill list with current selected set
-    opt pending candidates remain
-      Ext->>Ranker: decideSkills(lastPrompt, pending, alreadySelected)
-      Ranker-->>Ext: Newly selected skills
-      Ext->>Ext: Record history entry for step 1
+    rect rgba(34, 197, 94, 0.10)
+      opt pending candidates remain
+        Ext->>Ranker: decideSkills(lastPrompt, pending, alreadySelected)
+        Ranker-->>Ext: Newly selected skills
+        Ext->>Ext: Record history entry for step 1
+      end
     end
     Ext-->>Pi: First request sees only selected skills
   end
@@ -83,31 +111,45 @@ That is why it often feels like it runs **after a batch of tool calls**: Pi fini
 
 ```mermaid
 sequenceDiagram
-  participant Pi as Pi core
-  participant Ext as Skill picker extension
-  participant Tracker as TriggerTracker
-  participant Ranker as Decision backend
+  box rgba(224, 242, 254, 0.45) Pi runtime
+    participant Pi as Pi core
+  end
+  box rgba(245, 243, 255, 0.55) Skill picker extension
+    participant Ext as Skill picker extension
+  end
+  box rgba(243, 244, 246, 0.60) Trigger tracking
+    participant Tracker as TriggerTracker
+  end
+  box rgba(220, 252, 231, 0.55) Ranking backend
+    participant Ranker as Decision backend
+  end
 
   Note over Pi,Ranker: Same turn, after the first request
-  Pi->>Ext: context_with_system(messages before tool output)
-  Ext->>Tracker: shouldRank(prompt-and-tools, messages, lastPrompt)
-  Tracker-->>Ext: false
-  Ext-->>Pi: Reuse current selected skills
+  rect rgba(245, 158, 11, 0.10)
+    Pi->>Ext: context_with_system(messages before tool output)
+    Ext->>Tracker: shouldRank(prompt-and-tools, messages, lastPrompt)
+    Tracker-->>Ext: false
+    Ext-->>Pi: Reuse current selected skills
+  end
 
   Pi->>Pi: Run one or more tool calls
-  Pi->>Ext: next context_with_system(messages with new textual toolResult)
-  Ext->>Tracker: shouldRank(prompt-and-tools, messages, lastPrompt)
-  Tracker-->>Ext: true
-  Ext->>Ext: Build transcriptText from recent user/assistant/tool text
-  Ext->>Ranker: decideSkills(transcriptText, pending, alreadySelected)
-  Ranker-->>Ext: Newly selected skills
-  Ext->>Ext: Record history entry for this request number
-  Ext-->>Pi: Patch only the skills section for the next request
+  rect rgba(34, 197, 94, 0.10)
+    Pi->>Ext: next context_with_system(messages with new textual toolResult)
+    Ext->>Tracker: shouldRank(prompt-and-tools, messages, lastPrompt)
+    Tracker-->>Ext: true
+    Ext->>Ext: Build transcriptText from recent user/assistant/tool text
+    Ext->>Ranker: decideSkills(transcriptText, pending, alreadySelected)
+    Ranker-->>Ext: Newly selected skills
+    Ext->>Ext: Record history entry for this request number
+    Ext-->>Pi: Patch only the skills section for the next request
+  end
 
-  Pi->>Ext: later retry with unchanged transcript
-  Ext->>Tracker: shouldRank(prompt-and-tools, same messages, lastPrompt)
-  Tracker-->>Ext: false
-  Ext-->>Pi: No duplicate rerank for unchanged tool results
+  rect rgba(245, 158, 11, 0.10)
+    Pi->>Ext: later retry with unchanged transcript
+    Ext->>Tracker: shouldRank(prompt-and-tools, same messages, lastPrompt)
+    Tracker-->>Ext: false
+    Ext-->>Pi: No duplicate rerank for unchanged tool results
+  end
 ```
 
 ## What counts as a rerank trigger?
@@ -144,6 +186,18 @@ flowchart TD
   D -->|No| G["Keep current selection"]
   E -->|Yes| F
   E -->|No| G
+
+  classDef input fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E;
+  classDef control fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95;
+  classDef policy fill:#F3F4F6,stroke:#6B7280,color:#111827;
+  classDef active fill:#DCFCE7,stroke:#16A34A,color:#14532D;
+  classDef bypass fill:#FEF3C7,stroke:#D97706,color:#78350F;
+  classDef persist fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D;
+
+  class A input;
+  class B,D,E policy;
+  class C,G bypass;
+  class F active;
 ```
 
 - **`prompt-only`** — pick once at turn start, then never incrementally rerank.

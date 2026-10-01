@@ -2,6 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/pi-skill-picker-jev)](https://www.npmjs.com/package/pi-skill-picker-jev)
 
+> **Want to understand how this extension works? [Read the visual explainer](https://sites.arnavg.in/learning/pi-skill-picker/)** for a walkthrough of skill selection, scoring, and the request flow.
+
 Pi can discover a lot of skills, but most requests only need a few. **Skill Picker** asks a classifier which of your already-available skills fit the task, then shows Pi only that smaller set instead of the whole catalog.
 
 It is meant for people who already use Pi skills and want less prompt bloat, cleaner skill selection, and a simple way to keep the right skills available.

@@ -47,6 +47,10 @@ pi auth check --provider openrouter
 
 You can also use the built-in **Pi classifier** mode or point the extension at your own TypeSafe-compatible HTTP endpoint.
 
+### Extension order matters
+
+**Place Skill Picker first in your Pi configuration—or at least before any other extension that reads or modifies context.** It needs to filter the skills catalog before those extensions see the context, so they work with the selected skills rather than the full catalog.
+
 ## First run
 
 1. Start Pi inside a project that already contains Pi skills.

@@ -32,7 +32,7 @@ Requires **Pi 0.87.1+**.
 ### From npm
 
 ```bash
-pi install pi-skill-picker-jev
+pi install npm:pi-skill-picker-jev
 ```
 
 ### From this repository

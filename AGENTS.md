@@ -29,3 +29,21 @@ npm test
 ```
 
 For a local smoke test from a project containing Pi skills: `pi --extension /absolute/path/to/src/extension.ts`. Unless overridden by settings `apiToken`, OpenRouter credentials come from Pi provider authentication (`getApiKeyForProvider("openrouter")`, including Pi's environment-backed auth), not direct environment reads in this extension. Custom `apiBaseUrl` uses only its configured token (or no auth); reject redirects. See `docs/scoring-research.md` and `test/kev-live.test.ts` for opt-in local 4B/9B validation and the Noul-versus-Score findings; production uses five-level Score rubrics (task usefulness, topic relevance, global importance), not binary Noul. Never multiply by confidence or reinterpret legacy Noul responses. The default normalized cutoff 0.625 lies halfway between optional-support and directly-useful levels. The reproducible latency benchmark and raw measurements are in `.agents/plans/score-noul-benchmark.md`; benchmark code lives in `scripts/benchmark-decisions.ts`. Question-format research is in `.agents/plans/question-format-research.md`, with raw measurements, `scripts/benchmark-question-formats.ts`, and `scripts/analyze-question-formats.py`; production uses the shorter task rubric with the original question wording; shared-rubric and other layouts remain experimental, and the benchmark preserves the original full rubric as its control. A missing key or failed Jev call must leave the complete catalog hidden; only already selected skills may remain visible. Manual `/skill:name` remains Pi's responsibility.
+
+## Release changelog automation
+
+`.github/workflows/changelog.yml` runs independently of npm publishing on stable `vX.Y.Z` tags. It checks out the default branch and runs `scripts/update-changelog.ts` with Node 24 and the GitHub CLI. The script uses [GitHub's generated release notes API](https://docs.github.com/en/rest/releases/releases#generate-release-notes-content-for-a-release) with the preceding stable ancestor tag as `previous_tag_name`, so notes cover PRs between releases rather than an arbitrary number of recent PRs. Direct commits are not summarized by that API; releases without merged PRs get a comparison link, and maintainers can add handwritten summaries.
+
+The workflow commits `CHANGELOG.md` to the default branch using `GITHUB_TOKEN` with `contents: write`. It never moves tags, changes package versions, republishes npm, or edits GitHub Release bodies. Handwritten notes are preserved; reruns replace only marked generated blocks. Versions are inserted in numeric order for historical backfills. Keep the default branch writable by the bot; branch protection requiring PRs would need a PR-based write step instead. All changelog runs share a concurrency group and retry ordinary push races without force-pushing.
+
+To refresh an existing release after this workflow is installed on the default branch:
+
+```bash
+gh workflow run changelog.yml -f tag=v0.3.0
+```
+
+Local equivalent (authenticated `gh` required, tag must be an ancestor of HEAD):
+
+```bash
+RELEASE_TAG=v0.3.0 GITHUB_REPOSITORY=championswimmer/pi-skill-picker-jev node scripts/update-changelog.ts
+```

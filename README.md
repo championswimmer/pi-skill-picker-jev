@@ -77,7 +77,7 @@ In each case, you should see a small, task-specific set of skills show up in `/s
 ## Everyday commands
 
 - `/skill-picker` — open the picker menu.
-- `/skill-picker settings` — tune threshold, max new skills, minimum repo skills, trigger timing, classifier mode, and project allowlist.
+- `/skill-picker settings` — tune threshold, max new skills, minimum repo skills, trigger timing, classifier mode, and always-allowed skills. Global (user-level) skills are allowed in a global list saved in `~/.pi/agent/pi-skill-picker-jev.json`; project skills are allowed per project in `.pi/skill-picker-jev.json`.
 - `/skill-picker history` — inspect which skills were added during this session.
 - `/skill-picker on` / `/skill-picker off` — enable or disable the extension quickly.
 - `/skill:name` — manually invoke a skill if you want to bypass automatic selection.

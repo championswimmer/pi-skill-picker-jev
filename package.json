@@ -1,6 +1,6 @@
 {
   "name": "pi-skill-picker-jev",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Keep Pi's skill catalog out of context until Jev selects relevant skills",
   "homepage": "https://github.com/championswimmer/pi-skill-picker-jev#readme",
   "repository": {

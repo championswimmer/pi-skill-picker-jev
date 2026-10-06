@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+### Features
+
+- Separate global and project always-allowed skill lists, respecting each skill's scope.
+- Add distinct global and project allowlist editors and show where each list is saved.
+- Preserve global allowlist selections when saving other settings.
+
 ## 0.1.1
 
 ### Docs

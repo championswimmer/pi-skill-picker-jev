@@ -16,7 +16,7 @@ import {
   readSettings,
   writeSettings,
 } from "./settings.ts";
-import { readAllowlist } from "./always-allowed.ts";
+import { isAlwaysAllowed, readAllowlist, readGlobalAllowlist } from "./always-allowed.ts";
 import { showAlwaysAllowed } from "./always-allowed-ui.ts";
 
 const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
@@ -61,12 +61,14 @@ export default function skillPicker(pi: ExtensionAPI) {
   };
 
   const syncAllowlist = (cwd: string) => {
-    const allowed = readAllowlist(cwd);
-    for (const [name] of selected) {
-      if (!knownAdded.has(name) && !allowed.has(name)) selected.delete(name);
+    // Project skills follow the project allowlist; user-level skills follow the global one.
+    const project = readAllowlist(cwd);
+    const global = readGlobalAllowlist();
+    for (const [name, skill] of selected) {
+      if (!knownAdded.has(name) && !isAlwaysAllowed(skill, project, global)) selected.delete(name);
     }
     for (const skill of inventory) {
-      if (allowed.has(skill.name)) selected.set(skill.name, skill);
+      if (isAlwaysAllowed(skill, project, global)) selected.set(skill.name, skill);
     }
   };
 
@@ -87,13 +89,14 @@ export default function skillPicker(pi: ExtensionAPI) {
         const minSkillsOption = `Minimum repo skills: ${settings.minSkills}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
         const modeOption = `Classifier mode: ${CLASSIFIER_MODE_LABELS[settings.mode]}`;
-        const allowedOption = `Always allowed skills (this project): ${readAllowlist(ctx.cwd).size}`;
+        const globalAllowedOption = "Allow List (Global)";
+        const allowedOption = "Allow List (Project)";
         const customHttpActive = settings.mode === "custom-http";
         const baseOption = `Custom HTTP base URL: ${settings.apiBaseUrl ?? "not set"}`;
         const tokenOption = `Custom HTTP token: ${settings.apiToken ? "configured (hidden)" : "not set"}`;
         const modelOption = `Decision model: ${settings.model ?? "default / PI_SKILL_PICKER_MODEL"}`;
         const choice = await ctx.ui.select("Skill picker settings", [
-          enabledOption, thresholdOption, maxNewOption, minSkillsOption, triggerOption, modeOption, allowedOption,
+          enabledOption, thresholdOption, maxNewOption, minSkillsOption, triggerOption, modeOption, globalAllowedOption, allowedOption,
           ...(customHttpActive ? [baseOption, tokenOption] : []),
           modelOption, "Done",
         ]);
@@ -158,15 +161,17 @@ export default function skillPicker(pi: ExtensionAPI) {
           }
           continue;
         }
-        if (choice === allowedOption) {
+        if (choice === allowedOption || choice === globalAllowedOption) {
           // Before the first turn, Pi's registered skill commands provide the
           // same names/descriptions; never scan files or invent new candidates.
           const commands = pi.getCommands().filter((command) => command.source === "skill" && command.name.startsWith("skill:"));
           const skills = inventory.length ? inventory : commands.map((command) => ({
-            name: command.name.slice(6), description: command.description ?? "", filePath: "",
+            name: command.name.slice(6), description: command.description ?? "", filePath: "", sourceInfo: command.sourceInfo,
             // UI/ranking only; never passed to Pi's skills prompt.
           } as Skill));
-          await showAlwaysAllowed(ctx, skills);
+          await showAlwaysAllowed(ctx, skills, choice === globalAllowedOption ? "global" : "project");
+          // The global allowlist shares the settings file; refresh so later writes keep it.
+          settings = readSettings();
           syncAllowlist(ctx.cwd);
           continue;
         }

@@ -89,8 +89,8 @@ export default function skillPicker(pi: ExtensionAPI) {
         const minSkillsOption = `Minimum repo skills: ${settings.minSkills}`;
         const triggerOption = `When to pick: ${TRIGGER_LABELS[settings.triggerMode]}`;
         const modeOption = `Classifier mode: ${CLASSIFIER_MODE_LABELS[settings.mode]}`;
-        const globalAllowedOption = `Always allowed global skills: ${readGlobalAllowlist().size}`;
-        const allowedOption = `Always allowed project skills (this project): ${readAllowlist(ctx.cwd).size}`;
+        const globalAllowedOption = "Allow List (Global)";
+        const allowedOption = "Allow List (Project)";
         const customHttpActive = settings.mode === "custom-http";
         const baseOption = `Custom HTTP base URL: ${settings.apiBaseUrl ?? "not set"}`;
         const tokenOption = `Custom HTTP token: ${settings.apiToken ? "configured (hidden)" : "not set"}`;

@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import type { ExtensionCommandContext, Skill } from "@earendil-works/pi-coding-agent";
 import { Input, fuzzyFilter, matchesKey, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { dialogFrame } from "./dialog-frame.ts";
-import { readAllowlist, readGlobalAllowlist, skillScope, writeAllowlist, writeGlobalAllowlist, type AllowlistScope } from "./always-allowed.ts";
+import { allowlistPath, readAllowlist, readGlobalAllowlist, skillScope, writeAllowlist, writeGlobalAllowlist, type AllowlistScope } from "./always-allowed.ts";
 import { decideSkills } from "./decision.ts";
+import { getSettingsPath } from "./settings.ts";
 
 /**
  * Scope-specific editor. Project scope lists project skills and saves to the
@@ -89,7 +90,9 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
         if (index >= offset + 10) offset = index - 9;
         const tab = (label: string, selected: boolean) => selected
           ? theme.bg("selectedBg", theme.fg("text", ` ${label} `)) : ` ${label} `;
-        const lines = [scope === "global" ? "Global (all projects)" : `Project: ${ctx.cwd}`,
+        const lines = [scope === "global"
+          ? `Global (applies to all projects) · saved to ${getSettingsPath()}`
+          : `This project only · saved to ${allowlistPath(ctx.cwd)}`,
           `${tab("A-Z", mode === "alphabetical")}  ${tab("Relevance", mode === "relevance")}${loading ? " (ranking…)" : ""}`,
           `${draft.size} selected · ${items.length} results`,
           ...(mode === "relevance" && rankError ? [rankError] : []),
@@ -110,7 +113,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
         lines.push(`${Math.min(index + 1, items.length)}/${items.length}`, "",
           "Type to search · Ctrl+K clear · ↓ enter list · Space toggle · Enter description",
           `Esc search (twice close) · Tab switch tabs · Ctrl+R rank · ${isDirty() ? theme.fg("warning", "● ") : ""}Ctrl+S save`);
-        return dialogFrame(theme, `Always allowed ${scope} skills`, width, lines);
+        return dialogFrame(theme, scope === "global" ? "Allow List (Global)" : "Allow List (Project)", width, lines);
       },
       get focused() { return hasTuiFocus; },
       set focused(value: boolean) { hasTuiFocus = value; input.focused = value && !listFocused; },

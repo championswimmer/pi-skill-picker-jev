@@ -135,7 +135,8 @@ test("allow dialog has a title and filters immediately while typing and backspac
     }) } };
     const pending = showAlwaysAllowed(ctx as any, [skill("alpha"), skill("beta")]);
     const render = () => component.render(80).join("\n");
-    assert.match(render(), /^┌─ Always allowed project skills /);
+    assert.match(render(), /^┌─ Allow List \(Project\) /);
+    assert.match(component.render(400).join("\n"), new RegExp(`This project only · saved to ${allowlistPath(dir).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
     assert.match(render(), /2 results/);
     const lines = component.render(80);
     assert.match(lines[2], /A-Z.*Relevance/);
@@ -248,7 +249,7 @@ test("inline skill descriptions wrap, and Ctrl+O no longer opens a detail dialog
     const pending = showAlwaysAllowed(ctx as any, [long]);
     component.handleInput("\x1b[B"); // Enter list before expanding a skill
     component.handleInput("\x0f"); // Ctrl+O is no longer a detail shortcut
-    assert.match(component.render(40).join("\n"), /Always allowed project skills/);
+    assert.match(component.render(40).join("\n"), /Allow List \(Project\)/);
     component.handleInput("\r");
     const lines = component.render(40).join("\n");
     assert.match(lines, /• First line of a much longer/);
@@ -408,9 +409,9 @@ test("global editor lists only global skills and saves to the global settings fi
       component = factory({ requestRender: () => {} }, { fg: (_color: string, text: string) => text, bg: (_color: string, text: string) => text }, {}, resolve);
     }) } };
     const pending = showAlwaysAllowed(ctx as any, [skill("mine", false, "user"), skill("local")], "global");
-    const render = () => component.render(100).join("\n");
-    assert.match(render(), /^┌─ Always allowed global skills /);
-    assert.match(render(), /Global \(all projects\)/);
+    const render = () => component.render(400).join("\n");
+    assert.match(render(), /^┌─ Allow List \(Global\) /);
+    assert.match(render(), /Global \(applies to all projects\) · saved to .*pi-skill-picker-jev\.json/);
     assert.match(render(), /\[ \] mine/);
     assert.doesNotMatch(render(), /local/);
     component.handleInput("\x1b[B");

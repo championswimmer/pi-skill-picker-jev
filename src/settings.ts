@@ -33,6 +33,8 @@ export interface PickerSettings {
   /** Never sent to a different endpoint implicitly. */
   apiToken?: string;
   model?: string;
+  /** Globally always-allowed (user/temporary scope) skill names. */
+  alwaysAllowed?: string[];
 }
 
 export const DEFAULT_SETTINGS: PickerSettings = {
@@ -89,7 +91,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
   try {
     const data: unknown = JSON.parse(readFileSync(path, "utf8"));
     if (!data || typeof data !== "object") return { ...DEFAULT_SETTINGS };
-    const { enabled, threshold, maxNew, minSkills, triggerMode, mode, apiBaseUrl, apiToken, model } = data as Record<string, unknown>;
+    const { enabled, threshold, maxNew, minSkills, triggerMode, mode, apiBaseUrl, apiToken, model, alwaysAllowed } = data as Record<string, unknown>;
     // Keep invalid endpoints: request validation must fail closed, not
     // silently send a custom server's token/task to OpenRouter.
     const optional = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
@@ -108,6 +110,7 @@ export function readSettings(path = getSettingsPath()): PickerSettings {
       ...(apiBaseUrl !== undefined ? { apiBaseUrl: typeof apiBaseUrl === "string" ? apiBaseUrl.trim() : "invalid:base-url" } : {}),
       ...(optional(apiToken) ? { apiToken: optional(apiToken) } : {}),
       ...(optional(model) ? { model: optional(model) } : {}),
+      ...(Array.isArray(alwaysAllowed) ? { alwaysAllowed: [...new Set(alwaysAllowed.filter((name): name is string => typeof name === "string" && !!name.trim()))] } : {}),
     };
   } catch { return { ...DEFAULT_SETTINGS }; }
 }
@@ -117,7 +120,9 @@ export function writeSettings(settings: PickerSettings, path = getSettingsPath()
     parseMinSkills(String(settings.minSkills)) === undefined || !isTriggerMode(settings.triggerMode) || !isClassifierMode(settings.mode) ||
     (settings.apiBaseUrl !== undefined && !parseApiBaseUrl(settings.apiBaseUrl)) ||
     [settings.apiToken, settings.model].some((value) => value !== undefined &&
-      (typeof value !== "string" || !value.trim() || /[\r\n]/.test(value)))) {
+      (typeof value !== "string" || !value.trim() || /[\r\n]/.test(value))) ||
+    (settings.alwaysAllowed !== undefined && (!Array.isArray(settings.alwaysAllowed) ||
+      settings.alwaysAllowed.some((name) => typeof name !== "string" || !name.trim())))) {
     throw new Error("Invalid skill picker settings");
   }
   mkdirSync(dirname(path), { recursive: true });

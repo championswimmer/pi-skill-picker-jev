@@ -2,22 +2,28 @@ import { readFileSync } from "node:fs";
 import type { ExtensionCommandContext, Skill } from "@earendil-works/pi-coding-agent";
 import { Input, fuzzyFilter, matchesKey, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { dialogFrame } from "./dialog-frame.ts";
-import { readAllowlist, writeAllowlist } from "./always-allowed.ts";
+import { readAllowlist, readGlobalAllowlist, skillScope, writeAllowlist, writeGlobalAllowlist, type AllowlistScope } from "./always-allowed.ts";
 import { decideSkills } from "./decision.ts";
 
-/** A project-scoped editor. Only Ctrl+S writes the draft. */
-export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Skill[]): Promise<void> {
+/**
+ * Scope-specific editor. Project scope lists project skills and saves to the
+ * project allowlist; global scope lists user-level skills and saves to the
+ * global settings file. Only Ctrl+S writes the draft.
+ */
+export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Skill[], scope: AllowlistScope = "project"): Promise<void> {
   const names = new Set<string>();
   const available = skills.filter((skill) => {
-    if (skill.disableModelInvocation || names.has(skill.name)) return false;
+    if (skill.disableModelInvocation || names.has(skill.name) || skillScope(skill) !== scope) return false;
     names.add(skill.name);
     return true;
   });
   if (!available.length) {
-    ctx.ui.notify("No model-invocable skills are available in this project.", "warning");
+    ctx.ui.notify(scope === "global" ? "No model-invocable global skills are available." : "No model-invocable project skills are available in this project.", "warning");
     return;
   }
-  const draft = readAllowlist(ctx.cwd);
+  const load = () => scope === "global" ? readGlobalAllowlist() : readAllowlist(ctx.cwd);
+  const save = (names: Set<string>) => scope === "global" ? writeGlobalAllowlist(names) : writeAllowlist(ctx.cwd, names);
+  const draft = load();
   // Cache file character counts so search and ranking redraws never read from disk.
   const sizes = new Map(available.map((skill) => {
     try {
@@ -83,7 +89,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
         if (index >= offset + 10) offset = index - 9;
         const tab = (label: string, selected: boolean) => selected
           ? theme.bg("selectedBg", theme.fg("text", ` ${label} `)) : ` ${label} `;
-        const lines = [`Project: ${ctx.cwd}`,
+        const lines = [scope === "global" ? "Global (all projects)" : `Project: ${ctx.cwd}`,
           `${tab("A-Z", mode === "alphabetical")}  ${tab("Relevance", mode === "relevance")}${loading ? " (ranking…)" : ""}`,
           `${draft.size} selected · ${items.length} results`,
           ...(mode === "relevance" && rankError ? [rankError] : []),
@@ -104,7 +110,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
         lines.push(`${Math.min(index + 1, items.length)}/${items.length}`, "",
           "Type to search · Ctrl+K clear · ↓ enter list · Space toggle · Enter description",
           `Esc search (twice close) · Tab switch tabs · Ctrl+R rank · ${isDirty() ? theme.fg("warning", "● ") : ""}Ctrl+S save`);
-        return dialogFrame(theme, "Always allowed skills", width, lines);
+        return dialogFrame(theme, `Always allowed ${scope} skills`, width, lines);
       },
       get focused() { return hasTuiFocus; },
       set focused(value: boolean) { hasTuiFocus = value; input.focused = value && !listFocused; },
@@ -112,7 +118,7 @@ export async function showAlwaysAllowed(ctx: ExtensionCommandContext, skills: Sk
       handleInput(data: string) {
         if (matchesKey(data, "ctrl+s")) {
           try {
-            writeAllowlist(ctx.cwd, draft);
+            save(draft);
             savedNames = new Set(draft);
             redraw();
           } catch (error) { ctx.ui.notify(`Could not save always allowed skills: ${String(error)}`, "error"); }

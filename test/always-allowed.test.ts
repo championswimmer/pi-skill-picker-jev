@@ -5,14 +5,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
 import skillPicker from "../src/extension.ts";
-import { allowlistPath, readAllowlist, writeAllowlist } from "../src/always-allowed.ts";
+import { allowlistPath, readAllowlist, readGlobalAllowlist, writeAllowlist, writeGlobalAllowlist } from "../src/always-allowed.ts";
 import { showAlwaysAllowed } from "../src/always-allowed-ui.ts";
 import { rankSkills } from "../src/picker.ts";
-import { DEFAULT_SETTINGS, writeSettings } from "../src/settings.ts";
+import { DEFAULT_SETTINGS, readSettings, writeSettings } from "../src/settings.ts";
 
-const skill = (name: string, disabled = false): Skill => ({
+const skill = (name: string, disabled = false, scope: "project" | "user" = "project"): Skill => ({
   name, description: `${name} description`, filePath: `/skills/${name}/SKILL.md`, baseDir: `/skills/${name}`,
-  disableModelInvocation: disabled, sourceInfo: { path: `/skills/${name}/SKILL.md`, source: "test", scope: "project", origin: "top-level", baseDir: `/skills/${name}` },
+  disableModelInvocation: disabled, sourceInfo: { path: `/skills/${name}/SKILL.md`, source: "test", scope, origin: "top-level", baseDir: `/skills/${name}` },
 });
 
 test("allowlist persists only names per project and ignores malformed files", () => {
@@ -135,7 +135,7 @@ test("allow dialog has a title and filters immediately while typing and backspac
     }) } };
     const pending = showAlwaysAllowed(ctx as any, [skill("alpha"), skill("beta")]);
     const render = () => component.render(80).join("\n");
-    assert.match(render(), /^┌─ Always allowed skills /);
+    assert.match(render(), /^┌─ Always allowed project skills /);
     assert.match(render(), /2 results/);
     const lines = component.render(80);
     assert.match(lines[2], /A-Z.*Relevance/);
@@ -248,7 +248,7 @@ test("inline skill descriptions wrap, and Ctrl+O no longer opens a detail dialog
     const pending = showAlwaysAllowed(ctx as any, [long]);
     component.handleInput("\x1b[B"); // Enter list before expanding a skill
     component.handleInput("\x0f"); // Ctrl+O is no longer a detail shortcut
-    assert.match(component.render(40).join("\n"), /Always allowed skills/);
+    assert.match(component.render(40).join("\n"), /Always allowed project skills/);
     component.handleInput("\r");
     const lines = component.render(40).join("\n");
     assert.match(lines, /• First line of a much longer/);
@@ -358,4 +358,72 @@ test("global importance requests score all candidates independently of task rele
     },
   });
   assert.deepEqual(ranked.map(({ skill, score }) => [skill.name, score]), [["two", 0.9], ["one", 0.2]]);
+});
+
+test("global allowlist is stored in the global settings file and preserves other settings", () => {
+  const dir = mkdtempSync(join(tmpdir(), "jev-allowed-global-"));
+  try {
+    const path = join(dir, "pi-skill-picker-jev.json");
+    assert.deepEqual([...readGlobalAllowlist(path)], []);
+    writeSettings({ ...DEFAULT_SETTINGS, threshold: 0.8 }, path);
+    writeGlobalAllowlist(["z", "a", "z"], path);
+    const raw = JSON.parse(readFileSync(path, "utf8"));
+    assert.deepEqual(raw.alwaysAllowed, ["a", "z"]);
+    assert.equal(raw.threshold, 0.8);
+    assert.deepEqual(readSettings(path).alwaysAllowed, ["a", "z"]);
+    writeSettings(readSettings(path), path); // Settings writes keep the global allowlist
+    assert.deepEqual([...readGlobalAllowlist(path)], ["a", "z"]);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("global and project allowlists apply only to skills of their own scope", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "jev-allowed-scopes-"));
+  const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
+  try {
+    process.env.PI_CODING_AGENT_DIR = dir;
+    writeSettings({ ...DEFAULT_SETTINGS, minSkills: 0 });
+    writeGlobalAllowlist(["user-a", "proj-b"]);
+    writeAllowlist(dir, ["proj-a", "user-b"]);
+    const handlers = new Map<string, Function>();
+    skillPicker({ on: (name: string, handler: Function) => handlers.set(name, handler), registerCommand: () => {}, appendEntry: () => {} } as any);
+    const ctx = { cwd: dir, hasUI: false, sessionManager: { getBranch: () => [] }, modelRegistry: { getApiKeyForProvider: async () => undefined } };
+    await handlers.get("session_start")!({}, ctx);
+    const options = { skills: [skill("user-a", false, "user"), skill("user-b", false, "user"), skill("proj-a"), skill("proj-b")] };
+    await handlers.get("before_agent_start")!({ prompt: "anything", systemPromptOptions: options }, ctx);
+    assert.deepEqual(options.skills.map((s) => s.name).sort(), ["proj-a", "user-a"]);
+  } finally {
+    if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("global editor lists only global skills and saves to the global settings file", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "jev-allowed-global-ui-"));
+  const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
+  try {
+    process.env.PI_CODING_AGENT_DIR = dir;
+    let component!: { handleInput(data: string): void; render(width: number): string[] };
+    const ctx = { cwd: join(dir, "project"), ui: { notify: () => {}, custom: (factory: Function) => new Promise<boolean>((resolve) => {
+      component = factory({ requestRender: () => {} }, { fg: (_color: string, text: string) => text, bg: (_color: string, text: string) => text }, {}, resolve);
+    }) } };
+    const pending = showAlwaysAllowed(ctx as any, [skill("mine", false, "user"), skill("local")], "global");
+    const render = () => component.render(100).join("\n");
+    assert.match(render(), /^┌─ Always allowed global skills /);
+    assert.match(render(), /Global \(all projects\)/);
+    assert.match(render(), /\[ \] mine/);
+    assert.doesNotMatch(render(), /local/);
+    component.handleInput("\x1b[B");
+    component.handleInput(" ");
+    component.handleInput("\x13");
+    assert.deepEqual([...readGlobalAllowlist()], ["mine"]);
+    assert.deepEqual([...readAllowlist(ctx.cwd)], []);
+    component.handleInput("\x1b");
+    component.handleInput("\x1b");
+    await pending;
+  } finally {
+    if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
